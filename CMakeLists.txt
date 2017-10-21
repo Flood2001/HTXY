@@ -1,5 +1,5 @@
-INCLUDE_DIRECTORIES(AFTER E:/IEC61850/Code/HTXY/libsoup/include/libsoup-2.4)
-LINK_DIRECTORIES(E:/IEC61850/Code/HTXY/libsoup/lib)
+INCLUDE_DIRECTORIES(AFTER ${CMAKE_SOURCE_DIR}/HTXY/trunk/libsoup/include/libsoup-2.4)
+LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/HTXY/trunk/libsoup/lib)
 ADD_EXECUTABLE(HTXY WIN32 ${NM3000_APP_SRC}
     main.c
     windows_sys.cpp
