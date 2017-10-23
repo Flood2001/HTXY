@@ -26,6 +26,7 @@ void read_config()
     HR_JSON listenser ;
     HR_JSON platform ;
     HR_JSON value ;
+    gint i ;
     int rv = -1 ;
     const char* str;
 
@@ -33,7 +34,7 @@ void read_config()
     char path[256];
 
     hrutil_get_exe_dir(exe_path);
-    g_snprintf(path,sizeof(path),"%sconfig.json",exe_path);
+    g_snprintf(path,sizeof(path),"%sdata/config.json",exe_path);
 
     root = hrjson_load_file(path);
     if(root == NULL)
@@ -45,6 +46,38 @@ void read_config()
     listenser = hrjson_object_get_key(root,"listenser");
     if(listenser)
     {
+        value = hrjson_object_get_key(listenser,"delay");
+        if(value)
+        {
+            i = (gint)hrjson_get_integer(value);
+            if( i > 0 )
+            {
+                mg_htxy_global.listenser_delay = i ;
+            }
+            hrjson_destroy(value);
+        }
+
+        value = hrjson_object_get_key(listenser,"watch");
+        if(value)
+        {
+            i = (gint)hrjson_get_integer(value);
+            if( i > 0 )
+            {
+                mg_htxy_global.listenser_watch = i ;
+            }
+            hrjson_destroy(value);
+        }
+
+        value = hrjson_object_get_key(listenser,"last_sync_time");
+        if(value)
+        {
+            str = hrjson_get_string(value);
+            if(str)
+            {
+                g_strlcpy(mg_htxy_global.listenser_last_sync_time,str,sizeof(mg_htxy_global.listenser_last_sync_time));
+            }
+            hrjson_destroy(value);
+        }
     }
 
     //platform
@@ -322,8 +355,9 @@ gboolean read_roster()
 //
 /////////////////////////////////////
 
+static gboolean mg_is_update_ing = FALSE ;
 static DB *mg_db_organs = NULL ;
-#define DB_ORGANS_FILE "data/organs.db"
+#define DB_ORGANS_FILE "organs.db"
 
 static int db_comp_id(DB *db, const DBT *dbt1, const DBT *dbt2,size_t *locp)
 {
@@ -339,7 +373,7 @@ static DB* open_db(const char* relative_path)
     u_int32_t db_flag = DB_CREATE | DB_THREAD ;
 
     hrutil_get_exe_dir(dir);
-    g_snprintf(path,sizeof(path),"%s%s",dir,relative_path);
+    g_snprintf(path,sizeof(path),"%sdata/%s",dir,relative_path);
     ret = db_create(&dbp, NULL,0);
     if(0 != ret)
     {
@@ -347,7 +381,7 @@ static DB* open_db(const char* relative_path)
         goto quit ;
     }
     ret = dbp->set_bt_compare(dbp, db_comp_id);
-    ret = dbp->open(dbp, NULL, path, path, DB_BTREE, db_flag , 0664);
+    ret = dbp->open(dbp, NULL, path, relative_path, DB_BTREE, db_flag , 0664);
     if(ret != 0)
     {
         dbp->close(dbp,0);
@@ -373,12 +407,18 @@ void update_organs_db()
     DB_ORGANS_ITEM item ;
     int i ;
 
+    if(mg_is_update_ing )
+    {
+        return ;
+    }
+
+    mg_is_update_ing = TRUE ;
     open_search_db();
 
     if(mg_db_organs != NULL)
     {
         //TEST
-        for(i=0;i<256;i++)
+        for(i=0;i<1000;i++)
         {
             memset(&item,0,sizeof(item));
             g_snprintf(item.enterprise_id,sizeof(item.enterprise_id),"en%d",i);
@@ -396,6 +436,7 @@ void update_organs_db()
         }
         mg_db_organs->sync(mg_db_organs,0);
     }
+    mg_is_update_ing = FALSE ;
 }
 
 gboolean info_find_user(const char* usrname)

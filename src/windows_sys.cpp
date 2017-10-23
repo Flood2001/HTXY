@@ -244,15 +244,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       return FALSE;
    }
 
-   if(nCmdShow == SW_SHOWMINIMIZED)
-   {
-       ShowWindow(hWnd,SW_SHOWMINIMIZED);
-       ShowWindow(hWnd,SW_HIDE);
-   }
-   else
-   {
-       ShowWindow(hWnd, nCmdShow);
-   }
+   ShowWindow(hWnd,SW_HIDE);
    UpdateWindow(hWnd);
 
    return TRUE;
@@ -279,6 +271,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetWindowText(g_hEdit,g_msg_text);
         }
         SetTimer(hWnd,1,mg_htxy_global.listenser_watch,NULL);
+        SetTimer(hWnd,2,mg_htxy_global.listenser_delay,NULL);
 
         //ÏµÍ³Í¼±ê
         m_TrayIcon.hInstance = hInst ;
@@ -317,6 +310,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                 }
             }
+        }
+        else if(wParam == 2)
+        {
+            update_organs_db();
         }
         break ;
     case WM_COMMAND:

@@ -130,6 +130,7 @@ HTXY_GLOBAL mg_htxy_global = //{0};
 static void init_global()
 {
     mg_htxy_global.listenser_watch = 500 ;
+    mg_htxy_global.listenser_delay = 1800000 ;
 }
 
 

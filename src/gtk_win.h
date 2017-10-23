@@ -31,6 +31,7 @@ typedef struct tag_htxy_global {
     int listenser_delay ;
     int listenser_watch ;
     gboolean listenser_isync ;
+    char listenser_last_sync_time[TYPE_URL_MAX_LEN] ;
 
     char platform_api_login_type[TYPE_URL_MAX_LEN] ;
     char platform_api_login_url[TYPE_URL_MAX_LEN] ;

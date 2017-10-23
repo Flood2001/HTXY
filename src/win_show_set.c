@@ -10,6 +10,7 @@
 #include <hrutil/hrutil.h>
 #include "win_show_set.h"
 #include "gtk_win.h"
+#include "data_calc_util.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,6 +103,7 @@ static void Cwin_show_set_get_property(GObject *object,
 #endif
 
 static void slog_bt_update_utl(GtkButton *button, gpointer   user_data) ;
+void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data) ;
 //////////////////////////////////////////////////
 ///
 ///  类基本函数实现
@@ -264,7 +266,7 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
     label = gtk_label_new(LOCAL_STRING(sc_bt_liji));
     gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_bt_liji));
     gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
-    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_update_utl),window);
+    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_clicked_liji),window);
     Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(bt),
         1,line,1,1, FALSE, TRUE , FALSE,TRUE);
     line++ ;
@@ -360,6 +362,11 @@ Cwin_show_set* Cwin_show_set_new(void)
 
 static void slog_bt_update_utl(GtkButton *button, gpointer   user_data)
 {
+}
+
+static void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data)
+{
+    update_organs_db();
 }
 
 #ifdef __cplusplus

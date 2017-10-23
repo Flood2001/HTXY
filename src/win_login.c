@@ -369,8 +369,6 @@ void slog_bt_min_clicked(GtkButton *button, gpointer   user_data)
 void slog_bt_clicked_help(GtkButton *button, gpointer   user_data) 
 {
     Cwin_login *window = (Cwin_login*)user_data ;
-
-    update_organs_db();
 }
 
 #ifdef __cplusplus
