@@ -15,9 +15,10 @@ typedef struct tag_htxy_global {
     char session[TYPE_URL_MAX_LEN];
 
     // 统计信息
-    int stat_chengjie ;
-    int stat_faren ;
-    int stat_ziranren ;
+    int stat_organs_all ;
+    int stat_person_all ;
+    int stat_organs_shishi ;
+    int stat_person_shishi ;
 
     // 当前Info
     char info_name[1024];
@@ -31,8 +32,10 @@ typedef struct tag_htxy_global {
     int listenser_delay ;
     int listenser_watch ;
     gboolean listenser_isync ;
-    char listenser_last_sync_time[TYPE_URL_MAX_LEN] ;
+    gboolean is_use_organs ;    ///< 是否使用法人库
+    gboolean is_use_person ;    ///< 是否使用自然人库
 
+    //接口配置
     char platform_api_login_type[TYPE_URL_MAX_LEN] ;
     char platform_api_login_url[TYPE_URL_MAX_LEN] ;
     char platform_api_roster_type[TYPE_URL_MAX_LEN] ;
@@ -48,6 +51,7 @@ typedef struct tag_htxy_global {
 } HTXY_GLOBAL ;
 
 void exit_process();
+gboolean widget_update_init();
 gboolean widget_show_init();
 gboolean widget_hide_init();
 gboolean widget_switch_init();

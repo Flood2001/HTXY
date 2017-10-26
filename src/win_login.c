@@ -325,7 +325,11 @@ void Cwin_login_set_parent_window(Cwin_login *window , GtkWindow *parent_window)
 
 void Cwin_login_set_title(Cwin_login *window , const char* title)
 {
-    gtk_label_set_text(GTK_LABEL(window->prv->label_title),title);
+    char buff[1024] ;
+    const char *title_str ="<span foreground='black' weight='bold' font_desc='15'> %d </span>";
+    g_snprintf(buff,sizeof(buff),title_str, title ) ;
+    gtk_label_set_text(GTK_LABEL(window->prv->label_title),buff);
+    gtk_label_set_markup(GTK_LABEL(window->prv->label_title),buff);
 }
 
 void Cwin_login_set_help_info(Cwin_login *window,const char* help_info)

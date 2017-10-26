@@ -110,8 +110,17 @@ static void hide_all()
     widget_hide_info();
 }
 
+static Cwin_main_frame *mg_frame_window ; ///< Info
 static Cwin_show_info *mg_info_window ; ///< Info
 
+gboolean widget_update_init()
+{
+    if(mg_frame_window)
+    {
+        Cwin_main_frame_update(mg_frame_window);
+    }
+    return FALSE ;
+}
 gboolean widget_update_and_show_info()
 {
     widget_show_info();
@@ -171,6 +180,7 @@ int main(int argc,char **argv)
 #endif
 
     read_config();
+    stat_db();
 
     init_win(hInstance,hPrevInstance,lpCmdLine,nCmdShow);
 
@@ -178,6 +188,7 @@ int main(int argc,char **argv)
 
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     child = GTK_WIDGET(Cwin_main_frame_new());
+    mg_frame_window = (Cwin_main_frame*)child;
     gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET(child));
     Cwin_login_set_parent_window(WIN_LOGIN(child), GTK_WINDOW(window));
     Cwin_login_set_help_info(WIN_LOGIN(child), "abcdefg");

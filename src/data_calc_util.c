@@ -34,7 +34,7 @@ void read_config()
     char path[256];
 
     hrutil_get_exe_dir(exe_path);
-    g_snprintf(path,sizeof(path),"%sdata/config.json",exe_path);
+    g_snprintf(path,sizeof(path),"%sdata/setting.json",exe_path);
 
     root = hrjson_load_file(path);
     if(root == NULL)
@@ -67,17 +67,6 @@ void read_config()
             }
             hrjson_destroy(value);
         }
-
-        value = hrjson_object_get_key(listenser,"last_sync_time");
-        if(value)
-        {
-            str = hrjson_get_string(value);
-            if(str)
-            {
-                g_strlcpy(mg_htxy_global.listenser_last_sync_time,str,sizeof(mg_htxy_global.listenser_last_sync_time));
-            }
-            hrjson_destroy(value);
-        }
     }
 
     //platform
@@ -91,6 +80,8 @@ void read_config()
         {
             HR_JSON login ;
             HR_JSON roster ;
+            HR_JSON count ;
+            HR_JSON context ;
 
             login = hrjson_object_get_key(api,"login");
             if(login)
@@ -143,6 +134,58 @@ void read_config()
                     hrjson_destroy(value);
                 }
             }
+
+            count = hrjson_object_get_key(api,"count");
+            if(count)
+            {
+                value = hrjson_object_get_key(count,"type");
+                if(value)
+                {
+                    str = hrjson_get_string(value);
+                    if(str)
+                    {
+                        g_strlcpy(mg_htxy_global.platform_api_count_type,str,sizeof(mg_htxy_global.platform_api_count_type));
+                    }
+                    hrjson_destroy(value);
+                }
+
+                value = hrjson_object_get_key(count,"url");
+                if(value)
+                {
+                    str = hrjson_get_string(value);
+                    if(str)
+                    {
+                        g_strlcpy(mg_htxy_global.platform_api_count_url,str,sizeof(mg_htxy_global.platform_api_count_url));
+                    }
+                    hrjson_destroy(value);
+                }
+            }
+
+            context = hrjson_object_get_key(api,"context");
+            if(context)
+            {
+                value = hrjson_object_get_key(context,"type");
+                if(value)
+                {
+                    str = hrjson_get_string(value);
+                    if(str)
+                    {
+                        g_strlcpy(mg_htxy_global.platform_api_context_type,str,sizeof(mg_htxy_global.platform_api_context_type));
+                    }
+                    hrjson_destroy(value);
+                }
+
+                value = hrjson_object_get_key(context,"url");
+                if(value)
+                {
+                    str = hrjson_get_string(value);
+                    if(str)
+                    {
+                        g_strlcpy(mg_htxy_global.platform_api_context_url,str,sizeof(mg_htxy_global.platform_api_context_url));
+                    }
+                    hrjson_destroy(value);
+                }
+            }
         }
 
         value = hrjson_object_get_key(platform,"name");
@@ -174,6 +217,31 @@ void read_config()
             if(str)
             {
                 g_strlcpy(mg_htxy_global.platform_web,str,sizeof(mg_htxy_global.platform_web));
+            }
+            hrjson_destroy(value);
+        }
+
+        value = hrjson_object_get_key(platform,"type");
+        if(value)
+        {
+            str = hrjson_get_string(value);
+            if(str)
+            {
+                if(strcmp(str,"organsdb")==0)
+                {
+                    mg_htxy_global.is_use_organs = TRUE ;
+                    mg_htxy_global.is_use_person = FALSE ;
+                }
+                else if(strcmp(str,"persondb")==0)
+                {
+                    mg_htxy_global.is_use_organs = FALSE ;
+                    mg_htxy_global.is_use_person = TRUE ;
+                }
+                else
+                {
+                    mg_htxy_global.is_use_organs = TRUE ;
+                    mg_htxy_global.is_use_person = TRUE ;
+                }
             }
             hrjson_destroy(value);
         }
@@ -357,7 +425,9 @@ gboolean read_roster()
 
 static gboolean mg_is_update_ing = FALSE ;
 static DB *mg_db_organs = NULL ;
+static DB *mg_db_person = NULL ;
 #define DB_ORGANS_FILE "organs.db"
+#define DB_PERSON_FILE "person.db"
 
 static int db_comp_id(DB *db, const DBT *dbt1, const DBT *dbt2,size_t *locp)
 {
@@ -399,6 +469,10 @@ static void open_search_db()
     {
         mg_db_organs = open_db(DB_ORGANS_FILE);
     }
+    if(mg_db_person == NULL)
+    {
+        mg_db_person = open_db(DB_PERSON_FILE);
+    }
 }
 
 void update_organs_db()
@@ -434,54 +508,91 @@ void update_organs_db()
             d.size = sizeof(item);
             mg_db_organs->put(mg_db_organs, NULL,&k, &d,0);
         }
+        for(i=0;i<1000;i++)
+        {
+            memset(&item,0,sizeof(item));
+            g_snprintf(item.enterprise_id,sizeof(item.enterprise_id),"en%d",i);
+            g_snprintf(item.qymc,sizeof(item.qymc),"%d",i);
+            g_snprintf(item.id,sizeof(item.id),"id%d",i);
+            item.counts  =  i+15 ;
+            item.jcType =  2 ;
+            item.dataType = 2 ;
+
+            k.data = &item.id;
+            k.size = sizeof(item.id);
+            d.data = &item ;
+            d.size = sizeof(item);
+            mg_db_organs->put(mg_db_organs, NULL,&k, &d,0);
+        }
         mg_db_organs->sync(mg_db_organs,0);
     }
     mg_is_update_ing = FALSE ;
 }
 
-gboolean info_find_user(const char* usrname)
+void update_person_db()
+{
+    DBT k={0},d={0};
+    DB_PERSON_ITEM item ;
+    int i ;
+
+    if(mg_is_update_ing )
+    {
+        return ;
+    }
+
+    mg_is_update_ing = TRUE ;
+    open_search_db();
+
+    if(mg_db_person != NULL)
+    {
+        //TEST
+        for(i=10000;i<20000;i++)
+        {
+            memset(&item,0,sizeof(item));
+            g_snprintf(item.person_id,sizeof(item.person_id),"per%d",i);
+            g_snprintf(item.xm,sizeof(item.xm),"xm%d",i);
+            g_snprintf(item.sfzhm,sizeof(item.sfzhm),"%d",i);
+            g_snprintf(item.id,sizeof(item.id),"id%d",i);
+            item.counts  =  i+5 ;
+            item.jcType =  1 ;
+            item.dataType = 2 ;
+
+            k.data = &item.id;
+            k.size = sizeof(item.id);
+            d.data = &item ;
+            d.size = sizeof(item);
+            mg_db_person->put(mg_db_person, NULL,&k, &d,0);
+        }
+        mg_db_person->sync(mg_db_person,0);
+    }
+    mg_is_update_ing = FALSE ;
+}
+
+/// 统计数据库
+void stat_db()
 {
     int ret ;
     DBT k ;
     DBT d ;
     DBC *dbcp = NULL ;
     DB_ORGANS_ITEM organs_item ;
-    gboolean is_find = FALSE ;
-
-    memset(&organs_item,0,sizeof(organs_item));
+    DB_PERSON_ITEM person_item ;
 
     open_search_db();
 
-    if(mg_db_organs == NULL)
-    {
-        return FALSE ;
-    }
+    mg_htxy_global.stat_organs_all = 0 ;
+    mg_htxy_global.stat_person_all = 0 ;
+    mg_htxy_global.stat_organs_shishi = 0 ;
+    mg_htxy_global.stat_person_shishi = 0 ;
 
-    ret = mg_db_organs->cursor(mg_db_organs, NULL, &dbcp, 0);
-    if(ret != 0)
-    {
-        return FALSE ;
-    }
+    memset(&organs_item,0,sizeof(organs_item));
+    memset(&person_item,0,sizeof(person_item));
 
-    memset(&k,0,sizeof(k));
-    memset(&d,0,sizeof(d));
-    k.data = &organs_item.id ;
-    k.size = sizeof(organs_item.id);
-    k.ulen = sizeof(organs_item.id);
-    k.flags = DB_DBT_USERMEM;
-    d.data = &organs_item;
-    d.size = sizeof(organs_item);
-    d.ulen = sizeof(organs_item);
-    d.flags = DB_DBT_USERMEM;
-    ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
-    if(ret == 0 )
+    if(mg_db_organs != NULL)
     {
-        do{
-            if(strcmp(organs_item.qymc,usrname) == 0 )
-            {
-                is_find = TRUE ;
-                break ;
-            }
+        ret = mg_db_organs->cursor(mg_db_organs, NULL, &dbcp, 0);
+        if(ret == 0)
+        {
             memset(&k,0,sizeof(k));
             memset(&d,0,sizeof(d));
             k.data = &organs_item.id ;
@@ -492,20 +603,209 @@ gboolean info_find_user(const char* usrname)
             d.size = sizeof(organs_item);
             d.ulen = sizeof(organs_item);
             d.flags = DB_DBT_USERMEM;
-        }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
-    }
-    dbcp->close(dbcp);
-
-    if(is_find)
-    {
-        g_strlcpy(mg_htxy_global.info_name,organs_item.qymc,sizeof(mg_htxy_global.info_name));
-        if(organs_item.jcType ==1 )
-        {
-            mg_htxy_global.info_jiangli = organs_item.counts ;
+            ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
+            if(ret == 0 )
+            {
+                do{
+                    if(organs_item.is_shishi)
+                    {
+                        mg_htxy_global.stat_organs_shishi ++ ;
+                    }
+                    else
+                    {
+                        mg_htxy_global.stat_organs_all ++ ;
+                    }
+                    memset(&k,0,sizeof(k));
+                    memset(&d,0,sizeof(d));
+                    k.data = &organs_item.id ;
+                    k.size = sizeof(organs_item.id);
+                    k.ulen = sizeof(organs_item.id);
+                    k.flags = DB_DBT_USERMEM;
+                    d.data = &organs_item;
+                    d.size = sizeof(organs_item);
+                    d.ulen = sizeof(organs_item);
+                    d.flags = DB_DBT_USERMEM;
+                }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
+                dbcp->close(dbcp);
+            }
         }
-        else
+    }
+
+    if(mg_db_person != NULL)
+    {
+        ret = mg_db_person->cursor(mg_db_person, NULL, &dbcp, 0);
+        if(ret == 0)
         {
-            mg_htxy_global.info_chengjie = organs_item.counts ;
+            memset(&k,0,sizeof(k));
+            memset(&d,0,sizeof(d));
+            k.data = &person_item.id ;
+            k.size = sizeof(person_item.id);
+            k.ulen = sizeof(person_item.id);
+            k.flags = DB_DBT_USERMEM;
+            d.data = &person_item;
+            d.size = sizeof(person_item);
+            d.ulen = sizeof(person_item);
+            d.flags = DB_DBT_USERMEM;
+            ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
+            if(ret == 0 )
+            {
+                do{
+                    if(person_item.is_shishi)
+                    {
+                        mg_htxy_global.stat_person_shishi++ ;
+                    }
+                    else
+                    {
+                        mg_htxy_global.stat_person_all++ ;
+                    }
+                    memset(&k,0,sizeof(k));
+                    memset(&d,0,sizeof(d));
+                    k.data = &person_item.id ;
+                    k.size = sizeof(person_item.id);
+                    k.ulen = sizeof(person_item.id);
+                    k.flags = DB_DBT_USERMEM;
+                    d.data = &person_item;
+                    d.size = sizeof(person_item);
+                    d.ulen = sizeof(person_item);
+                    d.flags = DB_DBT_USERMEM;
+                }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
+                dbcp->close(dbcp);
+            }
+        }
+    }
+    RUN_GTK_FUNC(widget_update_init);
+}
+
+void update_all_db()
+{
+    if(mg_htxy_global.is_use_organs)
+    {
+        update_organs_db();
+    }
+    if(mg_htxy_global.is_use_person)
+    {
+        update_person_db();
+    }
+    stat_db() ;
+}
+
+
+gboolean info_find_user(const char* usrname)
+{
+    int ret ;
+    DBT k ;
+    DBT d ;
+    DBC *dbcp = NULL ;
+    DB_ORGANS_ITEM organs_item ;
+    DB_PERSON_ITEM person_item ;
+    gboolean is_find = FALSE ;
+
+    memset(&organs_item,0,sizeof(organs_item));
+    memset(&person_item,0,sizeof(person_item));
+
+    open_search_db();
+    mg_htxy_global.info_jiangli = 0 ;
+    mg_htxy_global.info_chengjie = 0 ;
+
+    if(mg_htxy_global.is_use_organs)
+    {
+        if(mg_db_organs != NULL)
+        {
+            ret = mg_db_organs->cursor(mg_db_organs, NULL, &dbcp, 0);
+            if(ret == 0)
+            {
+                memset(&k,0,sizeof(k));
+                memset(&d,0,sizeof(d));
+                k.data = &organs_item.id ;
+                k.size = sizeof(organs_item.id);
+                k.ulen = sizeof(organs_item.id);
+                k.flags = DB_DBT_USERMEM;
+                d.data = &organs_item;
+                d.size = sizeof(organs_item);
+                d.ulen = sizeof(organs_item);
+                d.flags = DB_DBT_USERMEM;
+                ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
+                if(ret == 0 )
+                {
+                    do{
+                        if(strcmp(organs_item.qymc,usrname) == 0 )
+                        {
+                            is_find = TRUE ;
+                            g_strlcpy(mg_htxy_global.info_name,organs_item.qymc,sizeof(mg_htxy_global.info_name));
+                            if(organs_item.jcType == JC_TYPE_JIANGLI  )
+                            {
+                                mg_htxy_global.info_jiangli = organs_item.counts ;
+                            }
+                            else
+                            {
+                                mg_htxy_global.info_chengjie = organs_item.counts ;
+                            }
+                        }
+                        memset(&k,0,sizeof(k));
+                        memset(&d,0,sizeof(d));
+                        k.data = &organs_item.id ;
+                        k.size = sizeof(organs_item.id);
+                        k.ulen = sizeof(organs_item.id);
+                        k.flags = DB_DBT_USERMEM;
+                        d.data = &organs_item;
+                        d.size = sizeof(organs_item);
+                        d.ulen = sizeof(organs_item);
+                        d.flags = DB_DBT_USERMEM;
+                    }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
+                }
+                dbcp->close(dbcp);
+            }
+        }
+    }
+
+    if(mg_htxy_global.is_use_person)
+    {
+        if(mg_db_person != NULL)
+        {
+            ret = mg_db_person->cursor(mg_db_person, NULL, &dbcp, 0);
+            if(ret == 0)
+            {
+                memset(&k,0,sizeof(k));
+                memset(&d,0,sizeof(d));
+                k.data = &person_item.id ;
+                k.size = sizeof(person_item.id);
+                k.ulen = sizeof(person_item.id);
+                k.flags = DB_DBT_USERMEM;
+                d.data = &person_item;
+                d.size = sizeof(person_item);
+                d.ulen = sizeof(person_item);
+                d.flags = DB_DBT_USERMEM;
+                ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
+                if(ret == 0 )
+                {
+                    do{
+                        if(strcmp(person_item.sfzhm,usrname) == 0 )
+                        {
+                            is_find = TRUE ;
+                            g_strlcpy(mg_htxy_global.info_name,person_item.xm,sizeof(mg_htxy_global.info_name));
+                            if(person_item.jcType == JC_TYPE_JIANGLI  )
+                            {
+                                mg_htxy_global.info_jiangli = person_item.counts ;
+                            }
+                            else
+                            {
+                                mg_htxy_global.info_chengjie = person_item.counts ;
+                            }
+                        }
+                        memset(&k,0,sizeof(k));
+                        memset(&d,0,sizeof(d));
+                        k.data = &person_item.id ;
+                        k.size = sizeof(person_item.id);
+                        k.ulen = sizeof(person_item.id);
+                        k.flags = DB_DBT_USERMEM;
+                        d.data = &person_item;
+                        d.size = sizeof(person_item);
+                        d.ulen = sizeof(person_item);
+                        d.flags = DB_DBT_USERMEM;
+                    }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
+                }
+                dbcp->close(dbcp);
+            }
         }
     }
 

@@ -37,6 +37,7 @@ struct _c_win_main_frame_Class {
 //对本类的公用操作函数
 GType Cwin_main_frame_type(void);
 Cwin_main_frame* Cwin_main_frame_new(void);
+void Cwin_main_frame_update(Cwin_main_frame* window);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 /// Copyright (C) 2017 Hrsoft Corporation, All rights reserved.
 /// @file win_show_set.c
 /// @author ’≈∫È∑Â
@@ -366,7 +366,7 @@ static void slog_bt_update_utl(GtkButton *button, gpointer   user_data)
 
 static void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data)
 {
-    update_organs_db();
+    update_all_db() ;
 }
 
 #ifdef __cplusplus

@@ -24,11 +24,12 @@ T_LANGUAGE_STRING sc_password = {"  密码：","Password:"} ;
 T_LANGUAGE_STRING sc_rem_pass = {" 记住密码","Save password"} ;
 T_LANGUAGE_STRING sc_bt_login = {"<span foreground='white' bgcolor='blue' font_desc='12'>  登录  </span>","Login"} ;
 
-T_LANGUAGE_STRING sc_chengjie = {"<span foreground='blue' font_desc='15'>惩戒对象数量</span>","ChengJie"} ;
-T_LANGUAGE_STRING sc_faren = {"<span foreground='black' font_desc='15'>法人数量</span>","ChengJie"} ;
-T_LANGUAGE_STRING sc_ziranren = {"<span foreground='black' font_desc='15'>自然人数量</span>","ChengJie"} ;
-static const char *mg_chengjie_str="<span foreground='white' bgcolor='blue' font_desc='15'> %d </span>";
-static const char *mg_faren_str ="<span foreground='white' bgcolor='black' font_desc='15'> %d </span>";
+T_LANGUAGE_STRING sc_faren = {"<span foreground='blue' weight='bold' font_desc='15'> 法人</span>","Organs"} ;
+T_LANGUAGE_STRING sc_ziranren = {"<span foreground='blue' weight='bold' font_desc='15'> 自然人</span>","Person"} ;
+T_LANGUAGE_STRING sc_honghei = {"<span foreground='black' font_desc='15'> 红黑名单</span>","HongHei"} ;
+T_LANGUAGE_STRING sc_daishishi = {"<span foreground='black' font_desc='15'> 待实施对象</span>","HongHei"} ;
+static const char *mg_honghei_str ="<span foreground='white' bgcolor='blue' font_desc='15'> %d </span>";
+static const char *mg_shishi_str ="<span foreground='white' bgcolor='black' font_desc='15'> %d </span>";
 static const char *mg_error_str ="<span foreground='red' > %s</span>";
 
 //////////////////////////////////////////////////
@@ -49,9 +50,10 @@ struct _c_win_main_frame_private {
     GtkWidget *m_ck_rem_pass ;  ///< 记住用户名和密码
     GtkWidget *m_label_error_str ;
     //统计界面
-    GtkWidget *m_label_chengjie ;
-    GtkWidget *m_label_faren ;
-    GtkWidget *m_label_ziranren ;
+    GtkWidget *m_label_organs_all ;
+    GtkWidget *m_label_organs_shishi ;
+    GtkWidget *m_label_person_all ;
+    GtkWidget *m_label_person_shishi ;
     GtkWidget *m_en_search ;
 };
 
@@ -124,6 +126,11 @@ static void slog_icon_press(GtkEntry            *entry,
     GtkEntryIconPosition icon_pos,
     GdkEvent            *event,
     gpointer             user_data) ;
+
+static void slog_bt_organs_all(GtkButton *button, gpointer   user_data) ;
+static void slog_bt_organs_shishi(GtkButton *button, gpointer   user_data) ;
+static void slog_bt_person_all(GtkButton *button, gpointer   user_data) ;
+static void slog_bt_person_shishi(GtkButton *button, gpointer   user_data) ;
 //////////////////////////////////////////////////
 ///
 ///  类基本函数实现
@@ -214,21 +221,27 @@ static void Cwin_main_frame_class_finalize(Cwin_main_frameClass *windowClass,gpo
     UNUSED_VAR(class_data);
 }
 
+#define UPDATE_ENTRY(entry,str,value) \
+    do { \
+        g_snprintf(buff,sizeof(buff),str,value); \
+        gtk_label_set_label(GTK_LABEL(entry),buff); \
+        gtk_label_set_markup(GTK_LABEL(entry),buff); \
+    }while(0)
+
 static void update_stat(Cwin_main_frame *window)
 {
     char buff[256];
-    if(window->prv->m_is_login)
+    if(window)
     {
-        g_snprintf(buff,sizeof(buff),mg_chengjie_str,mg_htxy_global.stat_chengjie);
-        gtk_label_set_label(GTK_LABEL(window->prv->m_label_chengjie),buff);
-        gtk_label_set_markup(GTK_LABEL(window->prv->m_label_chengjie),buff);
-        g_snprintf(buff,sizeof(buff),mg_faren_str ,mg_htxy_global.stat_faren);
-        gtk_label_set_label(GTK_LABEL(window->prv->m_label_faren),buff);
-        gtk_label_set_markup(GTK_LABEL(window->prv->m_label_faren),buff);
-        g_snprintf(buff,sizeof(buff),mg_faren_str ,mg_htxy_global.stat_ziranren);
-        gtk_label_set_label(GTK_LABEL(window->prv->m_label_ziranren),buff);
-        gtk_label_set_markup(GTK_LABEL(window->prv->m_label_ziranren),buff);
-        gtk_widget_show_all(GTK_WIDGET(window));
+        if(window->prv->m_is_login)
+        {
+            UPDATE_ENTRY(window->prv->m_label_organs_all, mg_honghei_str , mg_htxy_global.stat_organs_all);
+            UPDATE_ENTRY(window->prv->m_label_organs_shishi, mg_shishi_str , mg_htxy_global.stat_organs_shishi);
+            UPDATE_ENTRY(window->prv->m_label_person_all, mg_honghei_str , mg_htxy_global.stat_person_all);
+            UPDATE_ENTRY(window->prv->m_label_person_shishi , mg_shishi_str , mg_htxy_global.stat_person_shishi);
+
+            gtk_widget_show_all(GTK_WIDGET(window));
+        }
     }
 }
 
@@ -239,6 +252,7 @@ static void switch_view(Cwin_main_frame *window, int is_login )
     GdkPixbuf *bf; 
     char path[256];
     char exe_path[256];
+    GtkWidget *frame ;
 
     if(is_login == window->prv->m_is_login )
     {
@@ -311,33 +325,78 @@ static void switch_view(Cwin_main_frame *window, int is_login )
     else
     {
         window->prv->m_child_table = GTK_WIDGET(Cgtk_grid_table_new());
-        
-        label = gtk_label_new(LOCAL_STRING(sc_chengjie));
-        gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_chengjie));
-        gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
-        window->prv->m_label_chengjie = gtk_label_new("   ");
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(label),
-            0,0,3,1, TRUE , TRUE , TRUE ,TRUE);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_label_chengjie),
-            3,0,1,1, TRUE , TRUE , TRUE ,TRUE);
 
-        label = gtk_label_new(LOCAL_STRING(sc_faren));
-        gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_faren));
-        gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
-        window->prv->m_label_faren = gtk_label_new("   ");
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(label),
-            0,1,3,1, TRUE , TRUE , TRUE ,TRUE);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_label_faren),
-            3,1,1,1, TRUE , TRUE , TRUE ,TRUE);
+        gtk_grid_table_set_col_spacings(GTK_GRID_TABLE(window->prv->m_child_table), 10);
+        gtk_grid_table_set_row_spacings(GTK_GRID_TABLE(window->prv->m_child_table), 10);
 
-        label = gtk_label_new(LOCAL_STRING(sc_ziranren));
-        gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_ziranren));
-        gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
-        window->prv->m_label_ziranren = gtk_label_new("   ");
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(label),
-            0,2,3,1, TRUE , TRUE , TRUE ,TRUE);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_label_ziranren),
-            3,2,1,1, TRUE , TRUE , TRUE ,TRUE);
+        {//法人
+            Cgtk_grid_table *table ;
+
+            frame = gtk_frame_new(NULL);
+            table = Cgtk_grid_table_new();
+            gtk_container_add(GTK_CONTAINER(frame),GTK_WIDGET(table));
+            Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(frame),
+                0,0,1,1, TRUE , TRUE , TRUE ,TRUE);
+
+            label = gtk_label_new(LOCAL_STRING(sc_faren));
+            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_faren));
+            gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
+            Cgtk_grid_table_attach(table,label, 0,0,2,1, TRUE , TRUE , TRUE ,TRUE);
+
+            label = gtk_label_new(LOCAL_STRING(sc_honghei));
+            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_honghei));
+            gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
+            window->prv->m_label_organs_all = gtk_label_new("   ");
+            bt = gtk_button_new_with_label("      ");
+            gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(window->prv->m_label_organs_all));
+            g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_organs_all),window);
+            Cgtk_grid_table_attach(table,label, 0,1,1,1, TRUE , TRUE , TRUE ,TRUE);
+            Cgtk_grid_table_attach(table,bt, 1,1,1,1, TRUE , TRUE , TRUE ,TRUE);
+
+            label = gtk_label_new(LOCAL_STRING(sc_daishishi));
+            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_daishishi));
+            gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
+            window->prv->m_label_organs_shishi = gtk_label_new("   ");
+            bt = gtk_button_new_with_label("      ");
+            gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(window->prv->m_label_organs_shishi));
+            g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_organs_shishi),window);
+            Cgtk_grid_table_attach(table,label, 0,2,1,1, TRUE , TRUE , TRUE ,TRUE);
+            Cgtk_grid_table_attach(table,bt, 1,2,1,1, TRUE , TRUE , TRUE ,TRUE);
+        }
+        {//自然人
+            Cgtk_grid_table *table ;
+
+            frame = gtk_frame_new(NULL);
+            table = Cgtk_grid_table_new();
+            gtk_container_add(GTK_CONTAINER(frame),GTK_WIDGET(table));
+            Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(frame),
+                1,0,1,1, TRUE , TRUE , TRUE ,TRUE);
+
+            label = gtk_label_new(LOCAL_STRING(sc_ziranren));
+            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_ziranren));
+            gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
+            Cgtk_grid_table_attach(table,label, 0,0,2,1, TRUE , TRUE , TRUE ,TRUE);
+
+            label = gtk_label_new(LOCAL_STRING(sc_honghei));
+            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_honghei));
+            gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
+            window->prv->m_label_person_all = gtk_label_new("   ");
+            bt = gtk_button_new_with_label("      ");
+            gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(window->prv->m_label_person_all));
+            g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_person_all),window);
+            Cgtk_grid_table_attach(table,label, 0,1,1,1, TRUE , TRUE , TRUE ,TRUE);
+            Cgtk_grid_table_attach(table,bt, 1,1,1,1, TRUE , TRUE , TRUE ,TRUE);
+
+            label = gtk_label_new(LOCAL_STRING(sc_daishishi));
+            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_daishishi));
+            gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
+            window->prv->m_label_person_shishi = gtk_label_new("   ");
+            bt = gtk_button_new_with_label("      ");
+            gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(window->prv->m_label_person_shishi));
+            g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_person_shishi),window);
+            Cgtk_grid_table_attach(table,label, 0,2,1,1, TRUE , TRUE , TRUE ,TRUE);
+            Cgtk_grid_table_attach(table,bt, 1,2,1,1, TRUE , TRUE , TRUE ,TRUE);
+        }
 
         window->prv->m_en_search = gtk_entry_new();
         {
@@ -354,7 +413,7 @@ static void switch_view(Cwin_main_frame *window, int is_login )
         gtk_entry_set_activates_default(GTK_ENTRY(window->prv->m_en_search),TRUE);
         g_signal_connect(G_OBJECT(window->prv->m_en_search),"activate",G_CALLBACK(slog_search_activate),window);
         Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_en_search),
-            0,3,4,1, TRUE , TRUE , TRUE ,TRUE);
+            0,1,2,1, TRUE , TRUE , TRUE ,TRUE);
         update_stat(window);
 
         Cwin_login_set_child((Cwin_login*)window , window->prv->m_child_table);
@@ -371,7 +430,7 @@ static void Cwin_main_frame_inst_init(Cwin_main_frame *window)
 
     gtk_widget_set_usize(GTK_WIDGET(window), 500,300);
     window->prv->m_is_login = -1 ;
-    switch_view(window, 0);
+    switch_view(window, 1);
 }
 //对象析构函数
 static void Cwin_main_frame_inst_finalize(Cwin_main_frame *window)
@@ -439,6 +498,12 @@ Cwin_main_frame* Cwin_main_frame_new(void)
 
     return window;
 }
+
+void Cwin_main_frame_update(Cwin_main_frame* window)
+{
+    update_stat(window);
+}
+
 //////////////////////////////////////////////////
 ///
 ///  私有函数实现
@@ -492,6 +557,20 @@ static void slog_icon_press(GtkEntry            *entry,
     gpointer             user_data)
 {
     slog_search_activate(entry, user_data) ;
+}
+
+static void slog_bt_organs_all(GtkButton *button, gpointer   user_data)
+{
+}
+
+static void slog_bt_organs_shishi(GtkButton *button, gpointer   user_data) 
+{
+}
+static void slog_bt_person_all(GtkButton *button, gpointer   user_data) 
+{
+}
+static void slog_bt_person_shishi(GtkButton *button, gpointer   user_data) 
+{
 }
 
 #ifdef __cplusplus
