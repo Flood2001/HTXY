@@ -13,6 +13,8 @@ ADD_EXECUTABLE(HTXY WIN32 ${NM3000_APP_SRC}
     win_show_info.h
     win_show_set.c
     win_show_set.h
+    win_show_list.c
+    win_show_list.h
     data_calc_util.c
     data_calc_util.h
     resource.h

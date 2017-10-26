@@ -24,7 +24,7 @@
                 "url": "common/context"
             }
         },
-        "type": "organsdb",
+        "type": "rsondb",
         "name": "海豚信用微门户",
         "url": "http://101.231.89.71:9090/credit/",
         "web": "http://192.168.30.191:8080/credit/"

@@ -20,6 +20,7 @@
 #include "win_main_frame.h"
 #include "win_show_info.h"
 #include "win_show_set.h"
+#include "win_show_list.h"
 #include "gtk_win.h"
 #include "data_calc_util.h"
 
@@ -102,16 +103,19 @@ gboolean widget_switch_##name() \
 GLOBAL_WINDOW(init) ///< 初始化窗口
 GLOBAL_WINDOW(set) ///< 设置窗口
 GLOBAL_WINDOW(info) ///< 设置窗口
+GLOBAL_WINDOW(list) ///< 列表窗口
 
 static void hide_all()
 {
     widget_hide_init();
     widget_hide_set();
     widget_hide_info();
+    widget_hide_list();
 }
 
 static Cwin_main_frame *mg_frame_window ; ///< Info
 static Cwin_show_info *mg_info_window ; ///< Info
+static Cwin_show_list *mg_list_window ; ///< Info
 
 gboolean widget_update_init()
 {
@@ -128,6 +132,16 @@ gboolean widget_update_and_show_info()
     return FALSE ;
 }
 
+gboolean widget_show_list_window_with_type(int type)
+{
+    if(mg_list_window)
+    {
+        widget_show_list();
+        Cwin_show_list_set_show_type(mg_list_window,type);
+    }
+    return FALSE ;
+}
+
 //////////////////
 T_LANGUAGE_STRING sc_setting = {"设置","Settting"};
 
@@ -138,6 +152,7 @@ HTXY_GLOBAL mg_htxy_global = //{0};
 
 static void init_global()
 {
+    hrutil_get_exe_dir(mg_htxy_global.exe_dir);
     mg_htxy_global.listenser_watch = 500 ;
     mg_htxy_global.listenser_delay = 1800000 ;
 }
@@ -191,7 +206,6 @@ int main(int argc,char **argv)
     mg_frame_window = (Cwin_main_frame*)child;
     gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET(child));
     Cwin_login_set_parent_window(WIN_LOGIN(child), GTK_WINDOW(window));
-    Cwin_login_set_help_info(WIN_LOGIN(child), "abcdefg");
     gtk_window_set_title(GTK_WINDOW(window), mg_htxy_global.platform_name);
     mg_initWidget  = window ;
 
@@ -199,7 +213,7 @@ int main(int argc,char **argv)
     child = GTK_WIDGET(Cwin_show_set_new());
     gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET(child));
     Cwin_login_set_parent_window(WIN_LOGIN(child), GTK_WINDOW(window));
-    Cwin_login_set_title(WIN_LOGIN(child),LOCAL_STRING(sc_setting));
+    Cwin_login_set_title(WIN_LOGIN(child),get_const_str(1));
     gtk_window_set_title(GTK_WINDOW(window), mg_htxy_global.platform_name);
     mg_setWidget  = window ;
 
@@ -210,6 +224,14 @@ int main(int argc,char **argv)
     Cwin_login_set_parent_window(WIN_LOGIN(child), GTK_WINDOW(window));
     gtk_window_set_title(GTK_WINDOW(window), mg_htxy_global.platform_name);
     mg_infoWidget  = window ;
+
+    window = gtk_window_new (GTK_WINDOW_POPUP);
+    child = GTK_WIDGET(Cwin_show_list_new());
+    mg_list_window = (Cwin_show_list*)child;
+    gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET(child));
+    Cwin_login_set_parent_window(WIN_LOGIN(child), GTK_WINDOW(window));
+    gtk_window_set_title(GTK_WINDOW(window), mg_htxy_global.platform_name);
+    mg_listWidget  = window ;
 
     gtk_main ();
     return 0 ;

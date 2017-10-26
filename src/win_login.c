@@ -8,6 +8,7 @@
 /////////////////////////////////////////////////////
 #include <hrutil/hrutil.h>
 #include "win_login.h"
+#include "data_calc_util.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -326,8 +327,7 @@ void Cwin_login_set_parent_window(Cwin_login *window , GtkWindow *parent_window)
 void Cwin_login_set_title(Cwin_login *window , const char* title)
 {
     char buff[1024] ;
-    const char *title_str ="<span foreground='black' weight='bold' font_desc='15'> %d </span>";
-    g_snprintf(buff,sizeof(buff),title_str, title ) ;
+    g_snprintf(buff,sizeof(buff),get_const_str(2), title ) ;
     gtk_label_set_text(GTK_LABEL(window->prv->label_title),buff);
     gtk_label_set_markup(GTK_LABEL(window->prv->label_title),buff);
 }

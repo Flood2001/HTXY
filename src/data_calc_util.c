@@ -11,6 +11,7 @@
 #include <string.h>
 #include <hrutil/hrutil.h>
 #include <hrjson/hrjson.h>
+#include <hrxml/hrxml.h>
 #include <db.h>
 #include "gtk_win.h"
 #include "data_calc_util.h"
@@ -19,6 +20,33 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
+
+///  XML字符串
+typedef struct tag_CONST_STR_TABLE {
+    int id ;
+    char* str ;
+} CONST_STR_TABLE ;
+
+HRXML_TABLE_DEF_STRUCT_START(CONST_STR_TABLE,"data/const_string.xml",TRUE) 
+    HRXML_TABLE_DEF_VAR_DEFAULT_VALUE_INT(id,0) 
+    HRXML_TABLE_DEF_VAR_DEFAULT_VALUE_DUP_STRING(str,NULL) 
+HRXML_TABLE_DEF_STRUCT_MIDDLE(CONST_STR_TABLE)
+    HRXML_TABLE_DEF_INT_VAR(id)
+    HRXML_TABLE_DEF_DUP_STRING_VAR(str)
+HRXML_TABLE_DEF_STRUCT_END(CONST_STR_TABLE)
+    HRXML_TABLE_DEF_FIND_FUNC_INT(CONST_STR_TABLE,id) 
+
+const char* get_const_str(int id)
+{
+    CONST_STR_TABLE *table ;
+    table = hrxml_table_find_CONST_STR_TABLE_by_id(id);
+    if(table)
+    {
+        return table->str ;
+    }
+
+    return "" ;
+}
 
 void read_config()
 {
@@ -501,6 +529,7 @@ void update_organs_db()
             item.counts  =  i+5 ;
             item.jcType =  1 ;
             item.dataType = 2 ;
+            item.is_shishi = rand()%2 ;
 
             k.data = &item.id;
             k.size = sizeof(item.id);
@@ -511,12 +540,13 @@ void update_organs_db()
         for(i=0;i<1000;i++)
         {
             memset(&item,0,sizeof(item));
-            g_snprintf(item.enterprise_id,sizeof(item.enterprise_id),"en%d",i);
+            g_snprintf(item.enterprise_id,sizeof(item.enterprise_id),"en%dm",i);
             g_snprintf(item.qymc,sizeof(item.qymc),"%d",i);
-            g_snprintf(item.id,sizeof(item.id),"id%d",i);
+            g_snprintf(item.id,sizeof(item.id),"id%dm",i);
             item.counts  =  i+15 ;
             item.jcType =  2 ;
             item.dataType = 2 ;
+            item.is_shishi = rand()%2 ;
 
             k.data = &item.id;
             k.size = sizeof(item.id);
@@ -556,6 +586,7 @@ void update_person_db()
             item.counts  =  i+5 ;
             item.jcType =  1 ;
             item.dataType = 2 ;
+            item.is_shishi = rand()%2 ;
 
             k.data = &item.id;
             k.size = sizeof(item.id);
@@ -568,111 +599,105 @@ void update_person_db()
     mg_is_update_ing = FALSE ;
 }
 
+#define FOR_EACH_DB_START(dbp, var_type , var) \
+{ \
+    int ret ; \
+    DBT k ; \
+    DBT d ; \
+    DBC *dbcp = NULL ; \
+    var_type var ; \
+    open_search_db(); \
+    memset(&var,0,sizeof(var)); \
+    if(dbp != NULL) \
+    { \
+        ret = dbp->cursor(dbp, NULL, &dbcp, 0); \
+        if(ret == 0) \
+        { \
+            memset(&k,0,sizeof(k)); \
+            memset(&d,0,sizeof(d)); \
+            k.data = &var.id ; \
+            k.size = sizeof(var.id); \
+            k.ulen = sizeof(var.id); \
+            k.flags = DB_DBT_USERMEM; \
+            d.data = &var; \
+            d.size = sizeof(var); \
+            d.ulen = sizeof(var); \
+            d.flags = DB_DBT_USERMEM; \
+            ret = dbcp->get(dbcp,&k,&d,DB_FIRST); \
+            if(ret == 0 ) \
+            { \
+                do{
+
+#define FOR_EACH_DB_END(dbp, var_type , var) \
+                    memset(&k,0,sizeof(k)); \
+                    memset(&d,0,sizeof(d)); \
+                    k.data = &var.id ; \
+                    k.size = sizeof(var.id); \
+                    k.ulen = sizeof(var.id); \
+                    k.flags = DB_DBT_USERMEM; \
+                    d.data = &var; \
+                    d.size = sizeof(var); \
+                    d.ulen = sizeof(var); \
+                    d.flags = DB_DBT_USERMEM; \
+                }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) ); \
+                dbcp->close(dbcp); \
+            } \
+        } \
+    } \
+}
+
+#define FOR_EACH_ORGANS_END \
+                    memset(&k,0,sizeof(k)); \
+                    memset(&d,0,sizeof(d)); \
+                    k.data = &organs_item.id ; \
+                    k.size = sizeof(organs_item.id); \
+                    k.ulen = sizeof(organs_item.id); \
+                    k.flags = DB_DBT_USERMEM; \
+                    d.data = &organs_item; \
+                    d.size = sizeof(organs_item); \
+                    d.ulen = sizeof(organs_item); \
+                    d.flags = DB_DBT_USERMEM; \
+                }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) ); \
+                dbcp->close(dbcp); \
+            } \
+        } \
+    } \
+}
+
 /// 统计数据库
 void stat_db()
 {
-    int ret ;
-    DBT k ;
-    DBT d ;
-    DBC *dbcp = NULL ;
-    DB_ORGANS_ITEM organs_item ;
-    DB_PERSON_ITEM person_item ;
-
-    open_search_db();
-
     mg_htxy_global.stat_organs_all = 0 ;
     mg_htxy_global.stat_person_all = 0 ;
     mg_htxy_global.stat_organs_shishi = 0 ;
     mg_htxy_global.stat_person_shishi = 0 ;
 
-    memset(&organs_item,0,sizeof(organs_item));
-    memset(&person_item,0,sizeof(person_item));
-
-    if(mg_db_organs != NULL)
+    FOR_EACH_DB_START(mg_db_organs,DB_ORGANS_ITEM ,organs_item)
     {
-        ret = mg_db_organs->cursor(mg_db_organs, NULL, &dbcp, 0);
-        if(ret == 0)
+        if(organs_item.is_shishi)
         {
-            memset(&k,0,sizeof(k));
-            memset(&d,0,sizeof(d));
-            k.data = &organs_item.id ;
-            k.size = sizeof(organs_item.id);
-            k.ulen = sizeof(organs_item.id);
-            k.flags = DB_DBT_USERMEM;
-            d.data = &organs_item;
-            d.size = sizeof(organs_item);
-            d.ulen = sizeof(organs_item);
-            d.flags = DB_DBT_USERMEM;
-            ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
-            if(ret == 0 )
-            {
-                do{
-                    if(organs_item.is_shishi)
-                    {
-                        mg_htxy_global.stat_organs_shishi ++ ;
-                    }
-                    else
-                    {
-                        mg_htxy_global.stat_organs_all ++ ;
-                    }
-                    memset(&k,0,sizeof(k));
-                    memset(&d,0,sizeof(d));
-                    k.data = &organs_item.id ;
-                    k.size = sizeof(organs_item.id);
-                    k.ulen = sizeof(organs_item.id);
-                    k.flags = DB_DBT_USERMEM;
-                    d.data = &organs_item;
-                    d.size = sizeof(organs_item);
-                    d.ulen = sizeof(organs_item);
-                    d.flags = DB_DBT_USERMEM;
-                }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
-                dbcp->close(dbcp);
-            }
+            mg_htxy_global.stat_organs_shishi ++ ;
+        }
+        else
+        {
+            mg_htxy_global.stat_organs_all ++ ;
         }
     }
+    FOR_EACH_DB_END(mg_db_organs,DB_ORGANS_ITEM ,organs_item)
 
-    if(mg_db_person != NULL)
+    FOR_EACH_DB_START(mg_db_person,DB_PERSON_ITEM,person_item)
     {
-        ret = mg_db_person->cursor(mg_db_person, NULL, &dbcp, 0);
-        if(ret == 0)
+        if(person_item.is_shishi)
         {
-            memset(&k,0,sizeof(k));
-            memset(&d,0,sizeof(d));
-            k.data = &person_item.id ;
-            k.size = sizeof(person_item.id);
-            k.ulen = sizeof(person_item.id);
-            k.flags = DB_DBT_USERMEM;
-            d.data = &person_item;
-            d.size = sizeof(person_item);
-            d.ulen = sizeof(person_item);
-            d.flags = DB_DBT_USERMEM;
-            ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
-            if(ret == 0 )
-            {
-                do{
-                    if(person_item.is_shishi)
-                    {
-                        mg_htxy_global.stat_person_shishi++ ;
-                    }
-                    else
-                    {
-                        mg_htxy_global.stat_person_all++ ;
-                    }
-                    memset(&k,0,sizeof(k));
-                    memset(&d,0,sizeof(d));
-                    k.data = &person_item.id ;
-                    k.size = sizeof(person_item.id);
-                    k.ulen = sizeof(person_item.id);
-                    k.flags = DB_DBT_USERMEM;
-                    d.data = &person_item;
-                    d.size = sizeof(person_item);
-                    d.ulen = sizeof(person_item);
-                    d.flags = DB_DBT_USERMEM;
-                }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
-                dbcp->close(dbcp);
-            }
+            mg_htxy_global.stat_person_shishi++ ;
+        }
+        else
+        {
+            mg_htxy_global.stat_person_all++ ;
         }
     }
+    FOR_EACH_DB_END(mg_db_person,DB_PERSON_ITEM,person_item)
+
     RUN_GTK_FUNC(widget_update_init);
 }
 
@@ -692,125 +717,110 @@ void update_all_db()
 
 gboolean info_find_user(const char* usrname)
 {
-    int ret ;
-    DBT k ;
-    DBT d ;
-    DBC *dbcp = NULL ;
-    DB_ORGANS_ITEM organs_item ;
-    DB_PERSON_ITEM person_item ;
     gboolean is_find = FALSE ;
 
-    memset(&organs_item,0,sizeof(organs_item));
-    memset(&person_item,0,sizeof(person_item));
-
-    open_search_db();
     mg_htxy_global.info_jiangli = 0 ;
     mg_htxy_global.info_chengjie = 0 ;
 
     if(mg_htxy_global.is_use_organs)
     {
-        if(mg_db_organs != NULL)
+        FOR_EACH_DB_START(mg_db_organs,DB_ORGANS_ITEM ,organs_item)
         {
-            ret = mg_db_organs->cursor(mg_db_organs, NULL, &dbcp, 0);
-            if(ret == 0)
+            if(strcmp(organs_item.qymc,usrname) == 0 )
             {
-                memset(&k,0,sizeof(k));
-                memset(&d,0,sizeof(d));
-                k.data = &organs_item.id ;
-                k.size = sizeof(organs_item.id);
-                k.ulen = sizeof(organs_item.id);
-                k.flags = DB_DBT_USERMEM;
-                d.data = &organs_item;
-                d.size = sizeof(organs_item);
-                d.ulen = sizeof(organs_item);
-                d.flags = DB_DBT_USERMEM;
-                ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
-                if(ret == 0 )
+                is_find = TRUE ;
+                g_strlcpy(mg_htxy_global.info_name,organs_item.qymc,sizeof(mg_htxy_global.info_name));
+                if(organs_item.jcType == JC_TYPE_JIANGLI  )
                 {
-                    do{
-                        if(strcmp(organs_item.qymc,usrname) == 0 )
-                        {
-                            is_find = TRUE ;
-                            g_strlcpy(mg_htxy_global.info_name,organs_item.qymc,sizeof(mg_htxy_global.info_name));
-                            if(organs_item.jcType == JC_TYPE_JIANGLI  )
-                            {
-                                mg_htxy_global.info_jiangli = organs_item.counts ;
-                            }
-                            else
-                            {
-                                mg_htxy_global.info_chengjie = organs_item.counts ;
-                            }
-                        }
-                        memset(&k,0,sizeof(k));
-                        memset(&d,0,sizeof(d));
-                        k.data = &organs_item.id ;
-                        k.size = sizeof(organs_item.id);
-                        k.ulen = sizeof(organs_item.id);
-                        k.flags = DB_DBT_USERMEM;
-                        d.data = &organs_item;
-                        d.size = sizeof(organs_item);
-                        d.ulen = sizeof(organs_item);
-                        d.flags = DB_DBT_USERMEM;
-                    }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
+                    mg_htxy_global.info_jiangli = organs_item.counts ;
                 }
-                dbcp->close(dbcp);
+                else
+                {
+                    mg_htxy_global.info_chengjie = organs_item.counts ;
+                }
             }
         }
+        FOR_EACH_DB_END(mg_db_organs,DB_ORGANS_ITEM ,organs_item)
     }
 
     if(mg_htxy_global.is_use_person)
     {
-        if(mg_db_person != NULL)
+        FOR_EACH_DB_START(mg_db_person,DB_PERSON_ITEM,person_item)
         {
-            ret = mg_db_person->cursor(mg_db_person, NULL, &dbcp, 0);
-            if(ret == 0)
+            if(strcmp(person_item.sfzhm,usrname) == 0 )
             {
-                memset(&k,0,sizeof(k));
-                memset(&d,0,sizeof(d));
-                k.data = &person_item.id ;
-                k.size = sizeof(person_item.id);
-                k.ulen = sizeof(person_item.id);
-                k.flags = DB_DBT_USERMEM;
-                d.data = &person_item;
-                d.size = sizeof(person_item);
-                d.ulen = sizeof(person_item);
-                d.flags = DB_DBT_USERMEM;
-                ret = dbcp->get(dbcp,&k,&d,DB_FIRST);
-                if(ret == 0 )
+                is_find = TRUE ;
+                g_strlcpy(mg_htxy_global.info_name,person_item.xm,sizeof(mg_htxy_global.info_name));
+                if(person_item.jcType == JC_TYPE_JIANGLI  )
                 {
-                    do{
-                        if(strcmp(person_item.sfzhm,usrname) == 0 )
-                        {
-                            is_find = TRUE ;
-                            g_strlcpy(mg_htxy_global.info_name,person_item.xm,sizeof(mg_htxy_global.info_name));
-                            if(person_item.jcType == JC_TYPE_JIANGLI  )
-                            {
-                                mg_htxy_global.info_jiangli = person_item.counts ;
-                            }
-                            else
-                            {
-                                mg_htxy_global.info_chengjie = person_item.counts ;
-                            }
-                        }
-                        memset(&k,0,sizeof(k));
-                        memset(&d,0,sizeof(d));
-                        k.data = &person_item.id ;
-                        k.size = sizeof(person_item.id);
-                        k.ulen = sizeof(person_item.id);
-                        k.flags = DB_DBT_USERMEM;
-                        d.data = &person_item;
-                        d.size = sizeof(person_item);
-                        d.ulen = sizeof(person_item);
-                        d.flags = DB_DBT_USERMEM;
-                    }while( (dbcp->get(dbcp,&k,&d,DB_NEXT) == 0 ) );
+                    mg_htxy_global.info_jiangli = person_item.counts ;
                 }
-                dbcp->close(dbcp);
+                else
+                {
+                    mg_htxy_global.info_chengjie = person_item.counts ;
+                }
             }
         }
+        FOR_EACH_DB_END(mg_db_person,DB_PERSON_ITEM,person_item)
     }
 
     return is_find ;
 }
+
+int db_get_organs_all(DB_ORGANS_ITEM *item_array,int start , int count , gboolean is_shishi)
+{
+    int curr_index = 0 ;
+    int rv_index = 0 ;
+    DB_ORGANS_ITEM *item ;
+
+    FOR_EACH_DB_START(mg_db_organs,DB_ORGANS_ITEM ,organs_item)
+    {
+        if(organs_item.is_shishi == is_shishi )
+        {
+            if(rv_index < count )
+            {
+                if( curr_index >= start )
+                {
+                    item = item_array + rv_index ;
+                    memcpy(item,&organs_item,sizeof(DB_ORGANS_ITEM));
+                    rv_index++ ;
+                }
+            }
+            curr_index ++ ;
+        }
+    }
+    FOR_EACH_DB_END(mg_db_organs,DB_ORGANS_ITEM ,organs_item)
+
+    return rv_index ;
+}
+
+int db_get_person_all(DB_PERSON_ITEM *item_array,int start , int count , gboolean is_shishi)
+{
+    int curr_index = 0 ;
+    int rv_index = 0 ;
+    DB_PERSON_ITEM *item ;
+
+    FOR_EACH_DB_START(mg_db_person,DB_PERSON_ITEM,person_item)
+    {
+        if(person_item.is_shishi == is_shishi )
+        {
+            if(rv_index < count )
+            {
+                if( curr_index >= start )
+                {
+                    item = item_array + rv_index ;
+                    memcpy(item,&person_item,sizeof(DB_PERSON_ITEM));
+                    rv_index++ ;
+                }
+            }
+            curr_index ++ ;
+        }
+    }
+    FOR_EACH_DB_END(mg_db_person,DB_PERSON_ITEM,person_item)
+
+    return rv_index ;
+}
+
 
 #ifdef __cplusplus
 }

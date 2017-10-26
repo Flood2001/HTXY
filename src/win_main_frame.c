@@ -24,12 +24,6 @@ T_LANGUAGE_STRING sc_password = {"  密码：","Password:"} ;
 T_LANGUAGE_STRING sc_rem_pass = {" 记住密码","Save password"} ;
 T_LANGUAGE_STRING sc_bt_login = {"<span foreground='white' bgcolor='blue' font_desc='12'>  登录  </span>","Login"} ;
 
-T_LANGUAGE_STRING sc_faren = {"<span foreground='blue' weight='bold' font_desc='15'> 法人</span>","Organs"} ;
-T_LANGUAGE_STRING sc_ziranren = {"<span foreground='blue' weight='bold' font_desc='15'> 自然人</span>","Person"} ;
-T_LANGUAGE_STRING sc_honghei = {"<span foreground='black' font_desc='15'> 红黑名单</span>","HongHei"} ;
-T_LANGUAGE_STRING sc_daishishi = {"<span foreground='black' font_desc='15'> 待实施对象</span>","HongHei"} ;
-static const char *mg_honghei_str ="<span foreground='white' bgcolor='blue' font_desc='15'> %d </span>";
-static const char *mg_shishi_str ="<span foreground='white' bgcolor='black' font_desc='15'> %d </span>";
 static const char *mg_error_str ="<span foreground='red' > %s</span>";
 
 //////////////////////////////////////////////////
@@ -235,10 +229,10 @@ static void update_stat(Cwin_main_frame *window)
     {
         if(window->prv->m_is_login)
         {
-            UPDATE_ENTRY(window->prv->m_label_organs_all, mg_honghei_str , mg_htxy_global.stat_organs_all);
-            UPDATE_ENTRY(window->prv->m_label_organs_shishi, mg_shishi_str , mg_htxy_global.stat_organs_shishi);
-            UPDATE_ENTRY(window->prv->m_label_person_all, mg_honghei_str , mg_htxy_global.stat_person_all);
-            UPDATE_ENTRY(window->prv->m_label_person_shishi , mg_shishi_str , mg_htxy_global.stat_person_shishi);
+            UPDATE_ENTRY(window->prv->m_label_organs_all, get_const_str(15), mg_htxy_global.stat_organs_all);
+            UPDATE_ENTRY(window->prv->m_label_organs_shishi, get_const_str(16), mg_htxy_global.stat_organs_shishi);
+            UPDATE_ENTRY(window->prv->m_label_person_all, get_const_str(15), mg_htxy_global.stat_person_all);
+            UPDATE_ENTRY(window->prv->m_label_person_shishi , get_const_str(16), mg_htxy_global.stat_person_shishi);
 
             gtk_widget_show_all(GTK_WIDGET(window));
         }
@@ -338,13 +332,13 @@ static void switch_view(Cwin_main_frame *window, int is_login )
             Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(frame),
                 0,0,1,1, TRUE , TRUE , TRUE ,TRUE);
 
-            label = gtk_label_new(LOCAL_STRING(sc_faren));
-            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_faren));
+            label = gtk_label_new(get_const_str(11));
+            gtk_label_set_markup(GTK_LABEL(label),get_const_str(11));
             gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
             Cgtk_grid_table_attach(table,label, 0,0,2,1, TRUE , TRUE , TRUE ,TRUE);
 
-            label = gtk_label_new(LOCAL_STRING(sc_honghei));
-            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_honghei));
+            label = gtk_label_new(get_const_str(13));
+            gtk_label_set_markup(GTK_LABEL(label),get_const_str(13));
             gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
             window->prv->m_label_organs_all = gtk_label_new("   ");
             bt = gtk_button_new_with_label("      ");
@@ -353,8 +347,8 @@ static void switch_view(Cwin_main_frame *window, int is_login )
             Cgtk_grid_table_attach(table,label, 0,1,1,1, TRUE , TRUE , TRUE ,TRUE);
             Cgtk_grid_table_attach(table,bt, 1,1,1,1, TRUE , TRUE , TRUE ,TRUE);
 
-            label = gtk_label_new(LOCAL_STRING(sc_daishishi));
-            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_daishishi));
+            label = gtk_label_new(get_const_str(14));
+            gtk_label_set_markup(GTK_LABEL(label),get_const_str(14));
             gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
             window->prv->m_label_organs_shishi = gtk_label_new("   ");
             bt = gtk_button_new_with_label("      ");
@@ -372,13 +366,13 @@ static void switch_view(Cwin_main_frame *window, int is_login )
             Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(frame),
                 1,0,1,1, TRUE , TRUE , TRUE ,TRUE);
 
-            label = gtk_label_new(LOCAL_STRING(sc_ziranren));
-            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_ziranren));
+            label = gtk_label_new(get_const_str(12));
+            gtk_label_set_markup(GTK_LABEL(label),get_const_str(12));
             gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
             Cgtk_grid_table_attach(table,label, 0,0,2,1, TRUE , TRUE , TRUE ,TRUE);
 
-            label = gtk_label_new(LOCAL_STRING(sc_honghei));
-            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_honghei));
+            label = gtk_label_new(get_const_str(13));
+            gtk_label_set_markup(GTK_LABEL(label),get_const_str(13));
             gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
             window->prv->m_label_person_all = gtk_label_new("   ");
             bt = gtk_button_new_with_label("      ");
@@ -387,8 +381,8 @@ static void switch_view(Cwin_main_frame *window, int is_login )
             Cgtk_grid_table_attach(table,label, 0,1,1,1, TRUE , TRUE , TRUE ,TRUE);
             Cgtk_grid_table_attach(table,bt, 1,1,1,1, TRUE , TRUE , TRUE ,TRUE);
 
-            label = gtk_label_new(LOCAL_STRING(sc_daishishi));
-            gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_daishishi));
+            label = gtk_label_new(get_const_str(14));
+            gtk_label_set_markup(GTK_LABEL(label),get_const_str(14));
             gtk_misc_set_alignment(GTK_MISC(label), 0.1f , 0.5f);
             window->prv->m_label_person_shishi = gtk_label_new("   ");
             bt = gtk_button_new_with_label("      ");
@@ -561,16 +555,20 @@ static void slog_icon_press(GtkEntry            *entry,
 
 static void slog_bt_organs_all(GtkButton *button, gpointer   user_data)
 {
+    widget_show_list_window_with_type(1);
 }
 
 static void slog_bt_organs_shishi(GtkButton *button, gpointer   user_data) 
 {
+    widget_show_list_window_with_type(2);
 }
 static void slog_bt_person_all(GtkButton *button, gpointer   user_data) 
 {
+    widget_show_list_window_with_type(3);
 }
 static void slog_bt_person_shishi(GtkButton *button, gpointer   user_data) 
 {
+    widget_show_list_window_with_type(4);
 }
 
 #ifdef __cplusplus

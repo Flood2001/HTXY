@@ -10,6 +10,7 @@ extern "C"{
 #define TYPE_URL_MAX_LEN 1024
 /// 全局
 typedef struct tag_htxy_global {
+    char exe_dir[TYPE_URL_MAX_LEN];
     //登录信息
     char organId[TYPE_URL_MAX_LEN];
     char session[TYPE_URL_MAX_LEN];
@@ -62,6 +63,7 @@ gboolean widget_show_info();
 gboolean widget_hide_info();
 gboolean widget_switch_info();
 gboolean widget_update_and_show_info();
+gboolean widget_show_list_window_with_type(int type);
 
 extern HTXY_GLOBAL mg_htxy_global ;
 

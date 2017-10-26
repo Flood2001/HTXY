@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--HTXY配置文件，定义所有程序中使用的字符串-->
+<!-- span 可使用的属性表： --> 
+<!-- font[1], font_desc  : A font description string, such as "Sans Italic 12". Note that any other span attributes will override this description. So if you have "Sans Italic" and also a style="normal" attribute, you will get Sans normal, not italic. --> 
+<!-- font_family, face : A font family name  --> 
+<!-- font_size[1], size  : Font size in 1024ths of a point, or one of the absolute sizes 'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large', or one of the relative sizes 'smaller' or 'larger'. If you want to specify a absolute size, it's usually easier to take advantage of the ability to specify a partial font description using 'font'; you can use font='12.5' rather than size='12800'.  --> 
+<!-- font_style[1], style : One of 'normal', 'oblique', 'italic'  --> 
+<!-- font_weight[1], weight : One of 'ultralight', 'light', 'normal', 'bold', 'ultrabold', 'heavy', or a numeric weight  --> 
+<!-- font_variant[1], variant : One of 'normal' or 'smallcaps'  --> 
+<!-- font_stretch[1], stretch : One of 'ultracondensed', 'extracondensed', 'condensed', 'semicondensed', 'normal', 'semiexpanded', 'expanded', 'extraexpanded', 'ultraexpanded'  --> 
+<!-- foreground, fgcolor[1], color : An RGB color specification such as '#00FF00' or a color name such as 'red'  --> 
+<!-- background, bgcolor[1] : An RGB color specification such as '#00FF00' or a color name such as 'red'  --> 
+<!-- underline : One of 'none', 'single', 'double', 'low', 'error'  --> 
+<!-- underline_color : The color of underlines; an RGB color specification such as '#00FF00' or a color name such as 'red'  --> 
+<!-- rise : Vertical displacement, in 10000ths of an em. Can be negative for subscript, positive for superscript.  --> 
+<!-- strikethrough : 'true' or 'false' whether to strike through the text  --> 
+<!-- strikethrough_color : The color of strikethrough lines; an RGB color specification such as '#00FF00' or a color name such as 'red'  --> 
+<!-- fallback : 'true' or 'false' whether to enable fallback. If disabled, then characters will only be used from the closest matching font on the system. No fallback will be done to other fonts on the system that might contain the characters in the text. Fallback is enabled by default. Most applications should not disable fallback.  --> 
+<!-- lang : A language code, indicating the text language  --> 
+<!-- letter_spacing : Inter-letter spacing in 1024ths of a point.  --> 
+<!-- gravity : One of 'south', 'east', 'north', 'west', 'auto'.  --> 
+<!-- gravity_hint : One of 'natural', 'strong', 'line'.  --> 
+
+<CONST_STRING_TABLE>
+    <ITEM> <id>1</id> <str>设置</str> </ITEM>
+    <!-- 所有界面标题风格 -->
+    <ITEM> <id>2</id> <str>&lt;span foreground='black' weight='bold' font_desc='15'&gt; %s &lt;/span&gt;</str> </ITEM>
+
+    <!-- 主界面 -->
+    <ITEM> <id>11</id> <str>&lt;span foreground='blue' weight='bold' font_desc='15'&gt; 法人&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>12</id> <str>&lt;span foreground='blue' weight='bold' font_desc='15'&gt; 自然人&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>13</id> <str>&lt;span foreground='black' font_desc='15'&gt; 红黑名单&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>14</id> <str>&lt;span foreground='black' font_desc='15'&gt; 待实施对象&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>15</id> <str>&lt;span foreground='#FFFFFF' bgcolor='blue' font_desc='15'&gt; %d &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>16</id> <str>&lt;span foreground='#FFFFFF' bgcolor='black' font_desc='15'&gt; %d &lt;/span&gt;</str> </ITEM>
+
+    <!-- 数据库列表界面 -->
+    <ITEM> <id>31</id> <str>法人红黑名单</str> </ITEM>
+    <ITEM> <id>32</id> <str>法人待实施名单</str> </ITEM>
+    <ITEM> <id>33</id> <str>自然人红黑名单</str> </ITEM>
+    <ITEM> <id>34</id> <str>自然人待实施名单</str> </ITEM>
+    <ITEM> <id>35</id> <str>&lt;span foreground='blue' weight='bold' font_desc='15'&gt; 序号 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>36</id> <str>&lt;span foreground='blue' weight='bold' font_desc='15'&gt; 类型 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>37</id> <str>&lt;span foreground='blue' weight='bold' font_desc='15'&gt; 对象名称 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>38</id> <str>&lt;span foreground='blue' weight='bold' font_desc='15'&gt; 操作 &lt;/span&gt;</str> </ITEM>
+        <!-- 数据库列表界面 : 序号、操作对象 文字渲染 -->
+    <ITEM> <id>39</id> <str>&lt;span foreground='black' font_desc='15'&gt; %d &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>40</id> <str>&lt;span foreground='black' font_desc='15'&gt; %s &lt;/span&gt;</str> </ITEM>
+        <!-- 数据库列表界面 : 按钮 -->
+    <ITEM> <id>41</id> <str>&lt;span foreground='white' bgcolor='blue' font_desc='13'&gt; 实施 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>42</id> <str>&lt;span foreground='white' bgcolor='#008000' font_desc='13'&gt; 暂存 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>43</id> <str>&lt;span foreground='white' bgcolor='#008000' font_desc='13'&gt; 还原 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>44</id> <str>&lt;span foreground='white' bgcolor='red' font_desc='13'&gt; 删除 &lt;/span&gt;</str> </ITEM>
+        <!-- 数据库列表界面 : 页码渲染 -->
+    <ITEM> <id>46</id> <str>&lt;span foreground='black' font_desc='13'&gt; %d / %d &lt;/span&gt;</str> </ITEM>
+</CONST_STRING_TABLE>

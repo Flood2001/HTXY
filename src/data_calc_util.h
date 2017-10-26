@@ -5,7 +5,7 @@
 extern "C"{
 #endif
 
-
+const char* get_const_str(int id);
 
 void read_config();
 void write_config();
@@ -61,6 +61,12 @@ void update_all_db();
 void update_organs_db();
 void update_person_db();
 void stat_db();
+
+/// 获取organs的第 start 到 end 条 记录
+///start从0开始 , item_array为数组，用于返回值
+/// 返回值表示实际读取到的条数
+int db_get_organs_all(DB_ORGANS_ITEM *item_array,int start , int count , gboolean is_shishi);
+int db_get_person_all(DB_PERSON_ITEM *item_array,int start , int count , gboolean is_shishi);
 
 #ifdef __cplusplus
 }
