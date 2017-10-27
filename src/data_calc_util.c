@@ -599,6 +599,42 @@ void update_person_db()
     mg_is_update_ing = FALSE ;
 }
 
+void update_organs_item(DB_ORGANS_ITEM *item)
+{
+    DBT k={0},d={0};
+
+    open_search_db();
+
+    if(mg_db_organs)
+    {
+        k.data = &item->id;
+        k.size = sizeof(item->id);
+        d.data = item ;
+        d.size = sizeof(DB_ORGANS_ITEM);
+        mg_db_organs->put(mg_db_organs, NULL, &k, &d,DB_OVERWRITE_DUP);
+        mg_db_organs->sync(mg_db_organs,0);
+        stat_db();
+    }
+}
+
+void update_person_item(DB_PERSON_ITEM*item)
+{
+    DBT k={0},d={0};
+
+    open_search_db();
+
+    if(mg_db_person)
+    {
+        k.data = &item->id;
+        k.size = sizeof(item->id);
+        d.data = item ;
+        d.size = sizeof(DB_ORGANS_ITEM);
+        mg_db_person->put(mg_db_person, NULL, &k, &d,DB_OVERWRITE_DUP);
+        mg_db_person->sync(mg_db_person,0);
+        stat_db();
+    }
+}
+
 #define FOR_EACH_DB_START(dbp, var_type , var) \
 { \
     int ret ; \

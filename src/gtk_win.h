@@ -64,6 +64,7 @@ gboolean widget_hide_info();
 gboolean widget_switch_info();
 gboolean widget_update_and_show_info();
 gboolean widget_show_list_window_with_type(int type);
+void gtk_show_msg_dlg(int title_string_id,int context_string_id);
 
 extern HTXY_GLOBAL mg_htxy_global ;
 

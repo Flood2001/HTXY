@@ -26,7 +26,21 @@ extern "C" {
 ///
 ///////////////////////////////////////////////////
 
-#define MAX_ON_ONE_PAGE 10 
+enum {
+    COL_TYPE_ORGANS ,
+    COL_TYPE_PERSON
+};
+/// 列表树
+enum {
+    COL_POINTER ,  ///< NMCFG_PLUGIN_TMPT_MANAGER_ITEM_T * 
+    COL_TYPE ,     ///< COL_TYPE_ORGANS ,COL_TYPE_PERSON
+    COL_INDEX ,
+
+    COL_NUMS ,
+};
+
+#define MAX_ON_ONE_PAGE 4
+
 //对象的私有数据
 struct _c_win_show_list_private {
     GtkWidget *m_table ;
@@ -39,6 +53,16 @@ struct _c_win_show_list_private {
     
     /// 
     int m_table_curr_line ; ///< Table当前填充到多少行
+
+    /// 
+    GtkTreeView  *m_treeView ;          ///< 列表树
+    GtkTreeStore *m_treeStore ;
+    GdkPixbuf *m_pix_jiang ;
+    GdkPixbuf *m_pix_cheng ;
+    GdkPixbuf *m_pix_shishi ;
+    GdkPixbuf *m_pix_zancun ;
+    GdkPixbuf *m_pix_huanyuan ;
+    GdkPixbuf *m_pix_shanchu ;
 };
 
 #define  WIN_SHOW_LIST_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj),WIN_SHOW_LIST_TYPE,Cwin_show_list_private))
@@ -117,6 +141,42 @@ static void slog_bt_first(GtkButton *button, gpointer user_data) ;
 static void slog_bt_prev(GtkButton *button, gpointer user_data) ;
 static void slog_bt_next(GtkButton *button, gpointer user_data) ;
 static void slog_bt_end(GtkButton *button, gpointer user_data) ;
+
+static void no_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void pix_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void name_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void pix_shishi_cell_data_func(GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void pix_zancun_cell_data_func(GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void pix_huanyuan_cell_data_func(GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void pix_shanchu_cell_data_func(GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
 //////////////////////////////////////////////////
 ///
 ///  类基本函数实现
@@ -207,10 +267,34 @@ static void Cwin_show_list_class_finalize(Cwin_show_listClass *windowClass,gpoin
     UNUSED_VAR(class_data);
 }
 
+#define NEW_CLOUMN(string_id,width) \
+    do { \
+        column = gtk_tree_view_column_new(); \
+        label = GTK_WIDGET(Cfunc_label_new()); \
+        Cfunc_label_markup_text((Cfunc_label*)label,(char*)get_const_str(string_id)); \
+        gtk_tree_view_column_set_sizing(column,GTK_TREE_VIEW_COLUMN_FIXED);\
+        gtk_tree_view_column_set_widget(column,GTK_WIDGET(label)); \
+        gtk_tree_view_column_set_resizable(column,FALSE);\
+        gtk_tree_view_column_set_fixed_width(column,width); \
+        gtk_tree_view_append_column(GTK_TREE_VIEW(window->prv->m_treeView), column); \
+    }while(0)
+
+#define APPEND_PIX_BT(cell_func,call_back) \
+    do { \
+        renderer = custom_cell_renderer_button_new(); \
+        gtk_cell_renderer_set_alignment(renderer,0.5f,0.5f); \
+        gtk_tree_view_column_pack_start(column,renderer,TRUE); \
+        gtk_tree_view_column_set_cell_data_func(column, renderer, cell_func, window, NULL); \
+    }while(0)
+
 static void Cwin_show_list_clean_table(Cwin_show_list *window)
 {
     GtkWidget *frame ;
     GtkWidget *label ;
+    GtkTreeViewColumn *column ;
+    GtkCellRenderer *renderer ;
+    int line = 0 ;
+
     if(window->prv->m_table)
     {
         Cwin_login_clean_child((Cwin_login*)window);
@@ -220,13 +304,54 @@ static void Cwin_show_list_clean_table(Cwin_show_list *window)
     Cwin_login_set_child((Cwin_login*)window , GTK_WIDGET(window->prv->m_table));
     window->prv->m_table_curr_line = 0 ;
 
+    window->prv->m_treeStore = gtk_tree_store_new(COL_NUMS, G_TYPE_POINTER,G_TYPE_INT,G_TYPE_INT);
+    gtk_tree_store_clear(window->prv->m_treeStore);
+
+    // 树
+    window->prv->m_treeView = GTK_TREE_VIEW(gtk_tree_view_new());
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_table),GTK_WIDGET(window->prv->m_treeView),
+        0,0,4,1, TRUE, TRUE, TRUE,TRUE);
+    gtk_tree_view_set_model(GTK_TREE_VIEW(window->prv->m_treeView),GTK_TREE_MODEL(window->prv->m_treeStore));
+    gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(window->prv->m_treeView), TRUE);
+    gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(window->prv->m_treeView), GTK_TREE_VIEW_GRID_LINES_HORIZONTAL);
+    gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(window->prv->m_treeView)), GTK_SELECTION_NONE);
+    
+
+    NEW_CLOUMN(35,100) ;
+    renderer = gtk_cell_renderer_text_new(); 
+    gtk_cell_renderer_set_alignment(renderer,1.0f,0.5f);
+    gtk_tree_view_column_pack_start(column,renderer,TRUE);
+    gtk_tree_view_column_set_cell_data_func(column, renderer, no_cell_data_func, window, NULL);
+
+    NEW_CLOUMN(36,70) ;
+    renderer = gtk_cell_renderer_pixbuf_new(); 
+    gtk_cell_renderer_set_alignment(renderer,0.5f,0.5f);
+    gtk_tree_view_column_pack_start(column,renderer,TRUE);
+    gtk_tree_view_column_set_cell_data_func(column, renderer, pix_cell_data_func, window, NULL);
+
+    NEW_CLOUMN(37,400) ;
+    renderer = gtk_cell_renderer_text_new(); 
+    gtk_cell_renderer_set_alignment(renderer,0.0f,0.5f);
+    gtk_tree_view_column_pack_start(column,renderer,TRUE);
+    gtk_tree_view_column_set_cell_data_func(column, renderer, name_cell_data_func, window, NULL);
+
+    NEW_CLOUMN(38,180) ;
+    if(window->prv->curr_type == 1 )
+    {
+        APPEND_PIX_BT(pix_shishi_cell_data_func,call_back);
+        APPEND_PIX_BT(pix_zancun_cell_data_func,call_back);
+        APPEND_PIX_BT(pix_shanchu_cell_data_func,call_back);
+    }
+
+    window->prv->m_table_curr_line ++ ;
+    
     frame = gtk_frame_new(NULL);
     label = gtk_label_new(get_const_str(35));
     gtk_label_set_markup(GTK_LABEL(label),get_const_str(35));
     gtk_misc_set_alignment(GTK_MISC(label), 0.5f , 0.5f);
     gtk_container_add(GTK_CONTAINER(frame),GTK_WIDGET(label));
     Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_table),GTK_WIDGET(frame),
-        0,0,1,1, FALSE, FALSE , TRUE,TRUE);
+        0,1,1,1, FALSE, FALSE , TRUE,TRUE);
 
     frame = gtk_frame_new(NULL);
     label = gtk_label_new(get_const_str(36));
@@ -234,7 +359,7 @@ static void Cwin_show_list_clean_table(Cwin_show_list *window)
     gtk_misc_set_alignment(GTK_MISC(label), 0.5f , 0.5f);
     gtk_container_add(GTK_CONTAINER(frame),GTK_WIDGET(label));
     Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_table),GTK_WIDGET(frame),
-        1,0,1,1, FALSE, FALSE , TRUE,TRUE);
+        1,1,1,1, FALSE, FALSE , TRUE,TRUE);
 
     frame = gtk_frame_new(NULL);
     label = gtk_label_new(get_const_str(37));
@@ -242,7 +367,7 @@ static void Cwin_show_list_clean_table(Cwin_show_list *window)
     gtk_misc_set_alignment(GTK_MISC(label), 0.5f , 0.5f);
     gtk_container_add(GTK_CONTAINER(frame),GTK_WIDGET(label));
     Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_table),GTK_WIDGET(frame),
-        2,0,1,1, TRUE, FALSE , TRUE,TRUE);
+        2,1,1,1, TRUE, FALSE , TRUE,TRUE);
 
     frame = gtk_frame_new(NULL);
     label = gtk_label_new(get_const_str(38));
@@ -250,9 +375,10 @@ static void Cwin_show_list_clean_table(Cwin_show_list *window)
     gtk_misc_set_alignment(GTK_MISC(label), 0.5f , 0.5f);
     gtk_container_add(GTK_CONTAINER(frame),GTK_WIDGET(label));
     Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_table),GTK_WIDGET(frame),
-        3,0,1,1, FALSE, FALSE , TRUE,TRUE);
+        3,1,1,1, FALSE, FALSE , TRUE,TRUE);
     window->prv->m_table_curr_line ++ ;
 }
+
 
 typedef void (*BT_CLICK_CALL_BACK)(GtkButton *button, gpointer user_data) ;
 typedef struct tag_bt_def {
@@ -284,7 +410,7 @@ static BT_DEF mg_bt_def[] = {
 };
 
 static void Cwin_show_list_append_line(Cwin_show_list *window,
-       int no,int jcType ,const char* str ,guint bt_flag,gpointer usr_data)
+       int no,int jcType ,const char* str ,guint bt_flag,gpointer user_data)
 {
     GtkWidget *frame ;
     GtkWidget *label ;
@@ -340,7 +466,7 @@ static void Cwin_show_list_append_line(Cwin_show_list *window,
             gtk_label_set_markup(GTK_LABEL(label),get_const_str(mg_bt_def[i].name_id));
             bt = gtk_button_new_with_label("");
             gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
-            g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(mg_bt_def[i].callback),usr_data);
+            g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(mg_bt_def[i].callback),user_data);
             gtk_box_pack_start(GTK_BOX(hbox),bt,FALSE,FALSE,0);
         }
     }
@@ -416,6 +542,7 @@ static void Cwin_show_list_append_page_select(Cwin_show_list *window )
 static void Cwin_show_list_show_organs_all(Cwin_show_list *window)
 {
     int i ;
+    GtkTreeIter iter ;
     DB_ORGANS_ITEM *item ;
     DB_PERSON_ITEM *person ;
     guint bt_flag = BT_FLAG_ORGANS_SHISHI | BT_FLAG_ORGANS_ZANCUN | BT_FLAG_ORGANS_SHANCHU ;
@@ -424,6 +551,14 @@ static void Cwin_show_list_show_organs_all(Cwin_show_list *window)
         if(window->prv->curr_type == 1)
         {
             item = &window->prv->m_organs_data[i] ;
+
+            gtk_tree_store_append(window->prv->m_treeStore, &iter, NULL);
+            gtk_tree_store_set(window->prv->m_treeStore, &iter, 
+                COL_POINTER, item ,
+                COL_INDEX , window->prv->m_curr_page*MAX_ON_ONE_PAGE + i + 1,
+                COL_TYPE, COL_TYPE_ORGANS ,
+                -1 );
+
             Cwin_show_list_append_line(window, window->prv->m_curr_page*MAX_ON_ONE_PAGE + i + 1,
                 item->jcType, item->qymc , 
                 BT_FLAG_ORGANS_SHISHI | BT_FLAG_ORGANS_ZANCUN | BT_FLAG_ORGANS_SHANCHU , item);
@@ -452,17 +587,48 @@ static void Cwin_show_list_show_organs_all(Cwin_show_list *window)
     }
 }
 
+#define PIX_INIT(pix,png) \
+    do{ \
+        g_snprintf(path,sizeof(path),"%simage/%s",mg_htxy_global.exe_dir,png); \
+        window->prv->pix = gdk_pixbuf_new_from_file(path,NULL); \
+    }while(0)
+
+#define PIX_CLEAN(pix) \
+    do { \
+        if(window->prv->pix) \
+	    { \
+             g_object_unref( G_OBJECT(window->prv->pix) ); \
+             window->prv->pix = NULL ; \
+	    } \
+    }while(0)
+
 //对象构造函数
 static void Cwin_show_list_inst_init(Cwin_show_list *window)
 {
+    char path[256];
     window->prv = WIN_SHOW_LIST_GET_PRIVATE(window);
 
-    gtk_widget_set_usize(GTK_WIDGET(window), 800,580);
+    gtk_widget_set_usize(GTK_WIDGET(window), 800,780);
+
+    PIX_INIT(m_pix_jiang,"jiangli.png");
+    PIX_INIT(m_pix_cheng ,"chengjie.png");
+    PIX_INIT(m_pix_shishi,"shishi.png");
+    PIX_INIT(m_pix_zancun,"zancun.png");
+    PIX_INIT(m_pix_huanyuan,"huanyuan.png");
+    PIX_INIT(m_pix_shanchu,"shanchu.png");
 }
+
 
 //对象析构函数
 static void Cwin_show_list_inst_finalize(Cwin_show_list *window)
 {
+    PIX_CLEAN(m_pix_jiang) ;
+    PIX_CLEAN(m_pix_cheng) ;
+    PIX_CLEAN(m_pix_shishi) ;
+    PIX_CLEAN(m_pix_zancun) ;
+    PIX_CLEAN(m_pix_huanyuan) ;
+    PIX_CLEAN(m_pix_shanchu) ;
+
     G_OBJECT_CLASS(g_type_class_peek(g_type_parent(g_type_from_name("Cwin_show_list"))))->finalize(G_OBJECT(window));
 }
 //对象释放函数
@@ -592,7 +758,6 @@ void Cwin_show_list_set_show_type(Cwin_show_list *window ,int type)
 ///
 ///////////////////////////////////////////////////
 
-
 static void slog_bt_organs_shishi(GtkButton *button, gpointer user_data) 
 {
 }
@@ -602,7 +767,6 @@ static void slog_bt_organs_zancun(GtkButton *button, gpointer user_data)
 
     item->is_shishi = TRUE ;
     update_organs_item(item);
-    gtk_show_msg_dlg(49,50);
 }
 static void slog_bt_organs_huanyuan(GtkButton *button, gpointer user_data) 
 {
@@ -610,30 +774,18 @@ static void slog_bt_organs_huanyuan(GtkButton *button, gpointer user_data)
 
     item->is_shishi = FALSE ;
     update_organs_item(item);
-    gtk_show_msg_dlg(47,48);
 }
 static void slog_bt_organs_shanchu(GtkButton *button, gpointer user_data) 
 {
 }
 static void slog_bt_person_shishi(GtkButton *button, gpointer user_data) 
 {
-
 }
 static void slog_bt_person_zancun(GtkButton *button, gpointer user_data) 
 {
-    DB_PERSON_ITEM *item = (DB_PERSON_ITEM*)user_data ;
-
-    item->is_shishi = TRUE ;
-    update_person_db(item);
-    gtk_show_msg_dlg(49,50);
 }
 static void slog_bt_person_huanyuan(GtkButton *button, gpointer user_data) 
 {
-    DB_PERSON_ITEM *item = (DB_PERSON_ITEM*)user_data ;
-
-    item->is_shishi = FALSE ;
-    update_person_db(item);
-    gtk_show_msg_dlg(47,48);
 }
 static void slog_bt_person_shanchu(GtkButton *button, gpointer user_data) 
 {
@@ -686,6 +838,132 @@ static void slog_bt_end(GtkButton *button, gpointer user_data)
     }
     Cwin_show_list_set_show_curr_page(window);
 }
+
+static void no_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_list *window = (Cwin_show_list *)user_data ;
+
+    gint no ;
+    char text[1024];
+    gtk_tree_model_get(model, iter, COL_INDEX , &no,  -1);
+    g_snprintf(text,sizeof(text),get_const_str(39),no);
+    g_object_set(renderer, "text", text, NULL);
+    g_object_set(renderer, "markup", text, NULL);
+}
+
+static void pix_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_list *window = (Cwin_show_list *)user_data ;
+    gint type ;
+    gpointer p ;
+    gtk_tree_model_get(model, iter, COL_POINTER, &p,  COL_TYPE , &type ,-1);
+
+    if(type == COL_TYPE_ORGANS )
+    {
+        DB_ORGANS_ITEM *item = (DB_ORGANS_ITEM*)p;
+
+        if(item->jcType == JC_TYPE_JIANGLI )
+        {
+            g_object_set(renderer, "pixbuf", window->prv->m_pix_jiang, NULL);
+        }
+        else
+        {
+            g_object_set(renderer, "pixbuf", window->prv->m_pix_jiang, NULL);
+        }
+    }
+    else 
+    {
+        DB_PERSON_ITEM *item = (DB_PERSON_ITEM*)p;
+
+        if(item->jcType == JC_TYPE_JIANGLI )
+        {
+            g_object_set(renderer, "pixbuf", window->prv->m_pix_jiang, NULL);
+        }
+        else
+        {
+            g_object_set(renderer, "pixbuf", window->prv->m_pix_jiang, NULL);
+        }
+    }
+}
+
+static void name_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_list *window = (Cwin_show_list *)user_data ;
+    gint type ;
+    gpointer p ;
+    char text[1024];
+
+    gtk_tree_model_get(model, iter, COL_POINTER, &p,  COL_TYPE , &type ,-1);
+
+    if(type == COL_TYPE_ORGANS )
+    {
+        DB_ORGANS_ITEM *item = (DB_ORGANS_ITEM*)p;
+
+        g_snprintf(text,sizeof(text),get_const_str(40),item->qymc);
+        g_object_set(renderer, "text", text, NULL);
+        g_object_set(renderer, "markup", text, NULL);
+    }
+    else 
+    {
+        DB_PERSON_ITEM *item = (DB_PERSON_ITEM*)p;
+
+        g_snprintf(text,sizeof(text),get_const_str(40),item->xm);
+        g_object_set(renderer, "text", text, NULL);
+        g_object_set(renderer, "markup", text, NULL);
+    }
+}
+
+static void pix_shishi_cell_data_func(GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_list *window = (Cwin_show_list *)user_data ;
+    g_object_set(renderer, "pixbuf", window->prv->m_pix_shishi, NULL);
+}
+
+static void pix_zancun_cell_data_func(GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_list *window = (Cwin_show_list *)user_data ;
+    g_object_set(renderer, "pixbuf", window->prv->m_pix_zancun, NULL);
+}
+
+static void pix_huanyuan_cell_data_func(GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_list *window = (Cwin_show_list *)user_data ;
+    g_object_set(renderer, "pixbuf", window->prv->m_pix_huanyuan , NULL);
+}
+static void pix_shanchu_cell_data_func(GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_list *window = (Cwin_show_list *)user_data ;
+    g_object_set(renderer, "pixbuf", window->prv->m_pix_shanchu , NULL);
+}
+
 
 #ifdef __cplusplus
 }

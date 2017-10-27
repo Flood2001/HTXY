@@ -404,6 +404,7 @@ static void switch_view(Cwin_main_frame *window, int is_login )
                 g_object_unref(G_OBJECT(bf));
             }
         }
+        gtk_widget_set_size_request(GTK_WIDGET(window->prv->m_en_search),-1,40);
         gtk_entry_set_activates_default(GTK_ENTRY(window->prv->m_en_search),TRUE);
         g_signal_connect(G_OBJECT(window->prv->m_en_search),"activate",G_CALLBACK(slog_search_activate),window);
         Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_en_search),
@@ -422,7 +423,7 @@ static void Cwin_main_frame_inst_init(Cwin_main_frame *window)
 {
     window->prv = WIN_MAIN_FRAME_GET_PRIVATE(window);
 
-    gtk_widget_set_usize(GTK_WIDGET(window), 500,300);
+    gtk_widget_set_usize(GTK_WIDGET(window), 550,400);
     window->prv->m_is_login = -1 ;
     switch_view(window, 1);
 }

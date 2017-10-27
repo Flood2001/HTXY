@@ -75,6 +75,7 @@ gboolean widget_show_##name() \
 { \
   hide_all(); \
   gtk_widget_show_all (mg_##name##Widget); \
+  mg_curr_window = GTK_WINDOW(mg_##name##Widget); \
   return FALSE ; \
 } \
 gboolean widget_hide_##name() \
@@ -93,11 +94,13 @@ gboolean widget_switch_##name() \
         else \
         { \
             hide_all(); \
-            gtk_widget_show_all(mg_##name##Widget); \
+            widget_show_##name() ; \
         } \
     } \
     return FALSE ; \
 }
+
+static GtkWindow *mg_curr_window = NULL;
 
 //定义窗体
 GLOBAL_WINDOW(init) ///< 初始化窗口
@@ -111,6 +114,19 @@ static void hide_all()
     widget_hide_set();
     widget_hide_info();
     widget_hide_list();
+}
+
+void gtk_show_msg_dlg(int title_string_id,int context_string_id)
+{
+    GtkWidget * dlg ;
+
+    dlg = gtk_message_dialog_new_with_markup(GTK_WINDOW(mg_curr_window),GTK_DIALOG_MODAL,
+        GTK_MESSAGE_INFO,
+        GTK_BUTTONS_OK , get_const_str(title_string_id) );
+    gtk_message_dialog_format_secondary_markup(GTK_MESSAGE_DIALOG(dlg),get_const_str(context_string_id));
+    
+    gtk_dialog_run(GTK_DIALOG(dlg));
+    gtk_widget_destroy(GTK_WIDGET(dlg));
 }
 
 static Cwin_main_frame *mg_frame_window ; ///< Info
@@ -217,7 +233,7 @@ int main(int argc,char **argv)
     gtk_window_set_title(GTK_WINDOW(window), mg_htxy_global.platform_name);
     mg_setWidget  = window ;
 
-    window = gtk_window_new (GTK_WINDOW_POPUP);
+    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     child = GTK_WIDGET(Cwin_show_info_new());
     mg_info_window = (Cwin_show_info*)child;
     gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET(child));
@@ -225,7 +241,7 @@ int main(int argc,char **argv)
     gtk_window_set_title(GTK_WINDOW(window), mg_htxy_global.platform_name);
     mg_infoWidget  = window ;
 
-    window = gtk_window_new (GTK_WINDOW_POPUP);
+    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     child = GTK_WIDGET(Cwin_show_list_new());
     mg_list_window = (Cwin_show_list*)child;
     gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET(child));
