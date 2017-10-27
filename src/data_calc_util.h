@@ -62,6 +62,8 @@ void update_organs_db();
 void update_person_db();
 void update_organs_item(DB_ORGANS_ITEM *item);
 void update_person_item(DB_PERSON_ITEM*item);
+void delete_organs_item(DB_ORGANS_ITEM *item);
+void delete_person_item(DB_PERSON_ITEM*item);
 void stat_db();
 
 /// 获取organs的第 start 到 end 条 记录

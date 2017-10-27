@@ -26,16 +26,20 @@ extern "C" {
 ///
 ///////////////////////////////////////////////////
 
-T_LANGUAGE_STRING sc_url = {"<span weight='bold' font_desc='12'> 服务地址：</span>","Name:"} ;
-T_LANGUAGE_STRING sc_web = {"<span weight='bold' font_desc='12'> 平台地址：</span>","Name:"} ;
 T_LANGUAGE_STRING sc_tongbu = {"<span weight='bold' font_desc='12'> 数据同步：</span>","Name:"} ;
 T_LANGUAGE_STRING sc_bt_liji = {"<span weight='bold' foreground='#0000C0' font_desc='12'> 立即同步 </span>","Name:"} ;
-T_LANGUAGE_STRING sc_bt_update = {"<span foreground='white' bgcolor='#00C000' font_desc='12'> 更新配置 </span>","Name:"} ;
 
 //对象的私有数据
 struct _c_win_show_set_private {
+    //用户
+    GtkWidget *m_user_child_frame;
+
     GtkWidget *m_en_url ;
     GtkWidget *m_en_web ;
+    GtkWidget *m_en_app_name;
+    GtkWidget *m_ck_auto_sync ;
+    GtkWidget *m_ck_faren ;
+    GtkWidget *m_ck_ziranren ;
     GtkWidget *m_en_delay ;
 };
 
@@ -200,6 +204,7 @@ static void update_date(Cwin_show_set *window)
 
     gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_url),mg_htxy_global.platform_url);
     gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_web),mg_htxy_global.platform_web);
+    gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_app_name),mg_htxy_global.platform_name);
     g_snprintf(buff,sizeof(buff),"%d",mg_htxy_global.listenser_delay);
     gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_delay),buff);
 }
@@ -207,84 +212,214 @@ static void update_date(Cwin_show_set *window)
 //对象构造函数
 static void Cwin_show_set_inst_init(Cwin_show_set *window)
 {
+    GtkWidget *main_notebook ;
+    GtkWidget *sys_table ;  ///< 系统
+    GtkWidget *user_table ; ///< 用户
+    GtkWidget *param_table ;    ///< 参数
+    GtkWidget *port_table ;    ///< 接口
     GtkWidget *label ;
     GtkWidget *bt ;
-    GtkWidget *table ;
+    GtkWidget *frame;
+    GtkWidget *sep ;
+    GdkPixbuf *bf; 
+    GtkWidget *hbox ;
     int line = 0 ;
+    char path[256];
 
     window->prv = WIN_SHOW_SET_GET_PRIVATE(window);
 
-    table = GTK_WIDGET(Cgtk_grid_table_new());
+    /// 主NoteBook
+    main_notebook = gtk_notebook_new();
+    sys_table = GTK_WIDGET(Cgtk_grid_table_new());
+    port_table = GTK_WIDGET(Cgtk_grid_table_new());
+
+    label = GTK_WIDGET(Cfunc_label_new());
+    g_snprintf(path,sizeof(path),"%simage/sys.png",mg_htxy_global.exe_dir);
+    Cfunc_label_set_image_and_text((Cfunc_label*)label,path,get_const_str(81),24,24);
+    Cfunc_label_markup_text((Cfunc_label*)label,get_const_str(81));
+    gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook),sys_table,label);
+    label = GTK_WIDGET(Cfunc_label_new());
+    g_snprintf(path,sizeof(path),"%simage/port.png",mg_htxy_global.exe_dir);
+    Cfunc_label_set_image_and_text((Cfunc_label*)label,path,get_const_str(82),24,24);
+    Cfunc_label_markup_text((Cfunc_label*)label,get_const_str(82));
+    gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook),port_table,label);
+
+    /// 系统设置
+    user_table = GTK_WIDGET(Cgtk_grid_table_new());
+    param_table = GTK_WIDGET(Cgtk_grid_table_new());
+    gtk_grid_table_set_row_spacings(GTK_GRID_TABLE(sys_table),10);
+    gtk_grid_table_set_col_spacings(GTK_GRID_TABLE(sys_table),10);
+    gtk_grid_table_set_row_spacings(GTK_GRID_TABLE(user_table),10);
+    gtk_grid_table_set_col_spacings(GTK_GRID_TABLE(user_table),10);
+    
+    frame = gtk_frame_new(NULL);
+    gtk_container_add(GTK_CONTAINER(frame),user_table);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(sys_table),GTK_WIDGET(frame),
+        0,0,1,1, TRUE, TRUE , TRUE,TRUE);
+    frame = gtk_frame_new(NULL);
+    gtk_container_add(GTK_CONTAINER(frame),param_table);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(sys_table),GTK_WIDGET(frame),
+        1,0,1,1, TRUE, TRUE , TRUE,TRUE);
+
+    /// 用户
+    label = GTK_WIDGET(Cfunc_label_new());
+    sep = gtk_hseparator_new();
+    g_snprintf(path,sizeof(path),"%simage/user.png",mg_htxy_global.exe_dir);
+    Cfunc_label_set_image_and_text((Cfunc_label*)label,path,get_const_str(83),24,24);
+    Cfunc_label_markup_text((Cfunc_label*)label,get_const_str(83));
+    window->prv->m_user_child_frame = gtk_frame_new(NULL);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(label),
+        0,0,1,1, TRUE, FALSE, TRUE,TRUE);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(sep),
+        0,1,1,1, TRUE, FALSE, TRUE,TRUE);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(frame),
+        0,2,1,1, TRUE, TRUE , TRUE,TRUE);
+
+
+    /// 应用参数
+    line = 0 ;
+    label = GTK_WIDGET(Cfunc_label_new());
+    sep = gtk_hseparator_new();
+    g_snprintf(path,sizeof(path),"%simage/param.png",mg_htxy_global.exe_dir);
+    Cfunc_label_set_image_and_text((Cfunc_label*)label,path,get_const_str(84),24,24);
+    Cfunc_label_markup_text((Cfunc_label*)label,get_const_str(84));
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(label),
+        0,line++,2,1, TRUE, FALSE, TRUE,TRUE);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(sep),
+        0,line++,2,1, TRUE, FALSE, TRUE,TRUE);
 
     // url
-    label = gtk_label_new(LOCAL_STRING(sc_url));
-    gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_url));
+    label = gtk_label_new(get_const_str(85));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(85));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0f , 0.5f);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(label),
-        0,line,2,1, TRUE, TRUE , TRUE,TRUE);
-    line++ ;
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(label),
+        0,line++,2,1, TRUE, TRUE , TRUE,TRUE);
 
     window->prv->m_en_url = gtk_entry_new();
-    bt = gtk_button_new_with_label("   ");
-    label = gtk_label_new(LOCAL_STRING(sc_bt_update));
-    gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_bt_update));
-    gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
-    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_update_utl),window);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(window->prv->m_en_url),
-        0,line,1,1, TRUE , TRUE , TRUE ,TRUE);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(bt),
-        1,line,1,1, FALSE, TRUE , FALSE,TRUE);
+    g_snprintf(path,sizeof(path),"%simage/link.png",mg_htxy_global.exe_dir);
+    bf = gdk_pixbuf_new_from_file(path,NULL);
+    if(bf)
+    {
+        gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(window->prv->m_en_url),GTK_ENTRY_ICON_PRIMARY,bf);
+        g_object_unref(G_OBJECT(bf));
+    }
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(window->prv->m_en_url),
+        0,line,2,1, TRUE , TRUE , TRUE ,TRUE);
     line++ ;
 
     // web
-    label = gtk_label_new(LOCAL_STRING(sc_web));
-    gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_web));
+    label = gtk_label_new(get_const_str(86));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(86));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0f , 0.5f);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(label),
-        0,line,2,1, TRUE, TRUE , TRUE,TRUE);
-    line++ ;
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(label),
+        0,line++,2,1, TRUE, TRUE , TRUE,TRUE);
 
     window->prv->m_en_web = gtk_entry_new();
-    bt = gtk_button_new_with_label("   ");
-    label = gtk_label_new(LOCAL_STRING(sc_bt_update));
-    gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_bt_update));
-    gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
-    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_update_utl),window);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(window->prv->m_en_web),
-        0,line,1,1, TRUE , TRUE , TRUE ,TRUE);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(bt),
-        1,line,1,1, FALSE, TRUE , FALSE,TRUE);
+    g_snprintf(path,sizeof(path),"%simage/link.png",mg_htxy_global.exe_dir);
+    bf = gdk_pixbuf_new_from_file(path,NULL);
+    if(bf)
+    {
+        gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(window->prv->m_en_web),GTK_ENTRY_ICON_PRIMARY,bf);
+        g_object_unref(G_OBJECT(bf));
+    }
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(window->prv->m_en_web),
+        0,line,2,1, TRUE , TRUE, TRUE ,TRUE);
     line++ ;
 
-    // delay
-    label = gtk_label_new(LOCAL_STRING(sc_tongbu));
-    gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_tongbu));
+    // 应用名称
+    label = gtk_label_new(get_const_str(87));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(87));
     gtk_misc_set_alignment(GTK_MISC(label), 0.0f , 0.5f);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(label),
-        0,line,1,1, TRUE, TRUE , TRUE,TRUE);
-    bt = gtk_button_new_with_label("   ");
-    label = gtk_label_new(LOCAL_STRING(sc_bt_liji));
-    gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_bt_liji));
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(label),
+        0,line++,2,1, TRUE, TRUE , TRUE,TRUE);
+
+    window->prv->m_en_app_name = gtk_entry_new();
+    g_snprintf(path,sizeof(path),"%simage/app_name.png",mg_htxy_global.exe_dir);
+    bf = gdk_pixbuf_new_from_file(path,NULL);
+    if(bf)
+    {
+        gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(window->prv->m_en_app_name),GTK_ENTRY_ICON_PRIMARY,bf);
+        g_object_unref(G_OBJECT(bf));
+    }
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(window->prv->m_en_app_name),
+        0,line,2,1, TRUE , TRUE , TRUE ,TRUE);
+    line++ ;
+
+    /// 数据同步
+    sep = gtk_hseparator_new();
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(sep),
+        0,line++,2,1, TRUE, TRUE, TRUE,TRUE);
+
+    hbox = gtk_hbox_new(FALSE,0);
+    label = GTK_WIDGET(Cfunc_label_new());
+    g_snprintf(path,sizeof(path),"%simage/sync.png",mg_htxy_global.exe_dir);
+    Cfunc_label_set_image_and_text((Cfunc_label*)label,path,get_const_str(88),24,24);
+    Cfunc_label_markup_text((Cfunc_label*)label,get_const_str(88));
+    gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(label),FALSE,FALSE,0);
+    label = gtk_label_new("");
+    gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(label),TRUE,TRUE,0);
+    label = gtk_label_new(get_const_str(89));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(89));
+    bt = gtk_button_new_with_label("");
     gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
     g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_clicked_liji),window);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(bt),
-        1,line,1,1, FALSE, TRUE , FALSE,TRUE);
+    gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(bt),FALSE,FALSE,0);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(hbox),
+        0,line++,2,1, TRUE, TRUE , TRUE,TRUE);
+
+    //数据类型
+    label = gtk_label_new(get_const_str(94));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(94));
+    gtk_misc_set_alignment(GTK_MISC(label),1.0f,0.5f);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(label),
+        0,line,1,1, FALSE, TRUE , TRUE ,TRUE);
+    hbox = gtk_hbox_new(FALSE,0);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(hbox),
+        1,line,1,1, TRUE , TRUE , TRUE ,TRUE);
+    label = gtk_label_new(get_const_str(95));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(95));
+    window->prv->m_ck_faren = gtk_check_button_new_with_label("");
+    gtk_button_set_image(GTK_BUTTON(window->prv->m_ck_faren),GTK_WIDGET(label));
+    gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(window->prv->m_ck_faren),FALSE,FALSE,0);
+    label = gtk_label_new(get_const_str(96));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(96));
+    window->prv->m_ck_ziranren = gtk_check_button_new_with_label("");
+    gtk_button_set_image(GTK_BUTTON(window->prv->m_ck_ziranren ),GTK_WIDGET(label));
+    gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(window->prv->m_ck_ziranren),FALSE,FALSE,0);
     line++ ;
 
+    //自动同步
+    label = gtk_label_new(get_const_str(91));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(91));
+    gtk_misc_set_alignment(GTK_MISC(label),1.0f,0.5f);
+    window->prv->m_ck_auto_sync = gtk_check_button_new_with_label("");
+    gtk_button_set_image(GTK_BUTTON(window->prv->m_ck_auto_sync),GTK_WIDGET(label));
+    hbox = gtk_hbox_new(FALSE,0);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(window->prv->m_ck_auto_sync),
+        0,line,1,1, FALSE, TRUE , FALSE,TRUE);
+    hbox = gtk_hbox_new(FALSE,0);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(param_table),GTK_WIDGET(hbox),
+        1,line,1,1, TRUE , TRUE , TRUE ,TRUE);
+    line++ ;
+    label = gtk_label_new(get_const_str(92));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(92));
+    gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(label),FALSE,FALSE,0);
     window->prv->m_en_delay = gtk_entry_new();
-    bt = gtk_button_new_with_label("   ");
-    label = gtk_label_new(LOCAL_STRING(sc_bt_update));
-    gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_bt_update));
-    gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
-    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_update_utl),window);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(window->prv->m_en_delay),
-        0,line,1,1, TRUE , TRUE , TRUE ,TRUE);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(bt),
-        1,line,1,1, FALSE, TRUE , FALSE,TRUE);
-    line++ ;
+    g_snprintf(path,sizeof(path),"%simage/clock.png",mg_htxy_global.exe_dir);
+    bf = gdk_pixbuf_new_from_file(path,NULL);
+    if(bf)
+    {
+        gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(window->prv->m_en_delay),GTK_ENTRY_ICON_PRIMARY,bf);
+        g_object_unref(G_OBJECT(bf));
+    }
+    gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(window->prv->m_en_delay),TRUE,TRUE,0);
+    label = gtk_label_new(get_const_str(93));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(93));
+    gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(label),FALSE,FALSE,0);
 
-    gtk_widget_set_usize(GTK_WIDGET(window), 400,350);
-    Cwin_login_set_child((Cwin_login*)window , GTK_WIDGET(table));
+
+    gtk_widget_set_usize(GTK_WIDGET(window), 700,600);
+    Cwin_login_set_child((Cwin_login*)window , GTK_WIDGET(main_notebook));
     update_date(window);
 }
 

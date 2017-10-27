@@ -614,7 +614,12 @@ static void slog_bt_organs_huanyuan(GtkButton *button, gpointer user_data)
 }
 static void slog_bt_organs_shanchu(GtkButton *button, gpointer user_data) 
 {
+    DB_ORGANS_ITEM *item = (DB_ORGANS_ITEM *)user_data ;
+
+    delete_organs_item(item);
+    gtk_show_msg_dlg(51,52);
 }
+
 static void slog_bt_person_shishi(GtkButton *button, gpointer user_data) 
 {
 
@@ -637,6 +642,10 @@ static void slog_bt_person_huanyuan(GtkButton *button, gpointer user_data)
 }
 static void slog_bt_person_shanchu(GtkButton *button, gpointer user_data) 
 {
+    DB_PERSON_ITEM *item = (DB_PERSON_ITEM*)user_data ;
+
+    delete_person_item(item);
+    gtk_show_msg_dlg(51,52);
 }
 
 static void slog_bt_first(GtkButton *button, gpointer user_data) 

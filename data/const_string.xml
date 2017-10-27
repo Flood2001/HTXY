@@ -53,4 +53,29 @@
     <ITEM> <id>44</id> <str>&lt;span foreground='white' bgcolor='red' font_desc='13'&gt; 删除 &lt;/span&gt;</str> </ITEM>
         <!-- 数据库列表界面 : 页码渲染 -->
     <ITEM> <id>46</id> <str>&lt;span foreground='black' font_desc='13'&gt; %d / %d &lt;/span&gt;</str> </ITEM>
+        <!-- 数据库列表界面 : 提示信息 -->
+    <ITEM> <id>47</id> <str>&lt;span weight='bold' font_desc='14'&gt; 成功 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>48</id> <str>&lt;span foreground='black' font_desc='13'&gt; 还原数据成功！&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>49</id> <str>&lt;span weight='bold' font_desc='14'&gt; 成功 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>50</id> <str>&lt;span foreground='black' font_desc='13'&gt; 暂存数据成功！&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>51</id> <str>&lt;span weight='bold' font_desc='14'&gt; 成功 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>52</id> <str>&lt;span foreground='black' font_desc='13'&gt; 删除数据成功！&lt;/span&gt;</str> </ITEM>
+
+    <!-- 配置界面 -->
+    <ITEM> <id>81</id> <str>&lt;span foreground='black' &gt; 系统设置 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>82</id> <str>&lt;span foreground='black' &gt; 接口参数 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>83</id> <str>&lt;span foreground='#000080' weight='bold' &gt; 用户信息 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>84</id> <str>&lt;span foreground='#000080' weight='bold' &gt; 应用参数 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>85</id> <str>&lt;span foreground='black' &gt; 服务地址： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>86</id> <str>&lt;span foreground='black' &gt; 平台地址： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>87</id> <str>&lt;span foreground='black' &gt; 应用名称： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>88</id> <str>&lt;span foreground='#000080' weight='bold' &gt; 数据同步 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>89</id> <str>&lt;span foreground='white' bgcolor='#00C000' &gt; 立即同步 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>90</id> <str>&lt;span foreground='white' bgcolor='#00C000' &gt; 更新配置 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>91</id> <str>&lt;span foreground='black' &gt; 自动同步：&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>92</id> <str>&lt;span foreground='black' &gt; 同步频率：&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>93</id> <str>&lt;span foreground='black' &gt;分钟 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>94</id> <str>&lt;span foreground='black' &gt; 数据类型：&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>95</id> <str>&lt;span foreground='black' &gt; 法人 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>96</id> <str>&lt;span foreground='black' &gt; 自然人 &lt;/span&gt;</str> </ITEM>
 </CONST_STRING_TABLE>

@@ -193,7 +193,11 @@ int main(int argc,char **argv)
     GtkWidget *child ;
 
     g_type_init();
+    //hrutil_log_set_level_mask(HRUTIL_LOG_LEVEL_ALL);
+    //hrutil_log_set_write_to_file("C:\\loglog",1000000000);
+
     init_global();
+    hrutil_malloc(45);
 
     //载入程序所在目录下的gtkrc/grkrc
     {
@@ -250,6 +254,8 @@ int main(int argc,char **argv)
     mg_listWidget  = window ;
 
     gtk_main ();
+
+    hrutil_mem_check_output_all_mem();
     return 0 ;
 }
 

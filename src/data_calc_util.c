@@ -21,7 +21,11 @@
 extern "C"{
 #endif
 
+//////////////////////
+///
 ///  XML字符串
+///
+//////////////////////
 typedef struct tag_CONST_STR_TABLE {
     int id ;
     char* str ;
@@ -47,6 +51,12 @@ const char* get_const_str(int id)
 
     return "" ;
 }
+
+///////////////////////////////////////////////////////
+///
+///  CONFIG 文件读写 
+///
+///////////////////////////////////////////////////////
 
 void read_config()
 {
@@ -82,7 +92,6 @@ void read_config()
             {
                 mg_htxy_global.listenser_delay = i ;
             }
-            hrjson_destroy(value);
         }
 
         value = hrjson_object_get_key(listenser,"watch");
@@ -93,7 +102,6 @@ void read_config()
             {
                 mg_htxy_global.listenser_watch = i ;
             }
-            hrjson_destroy(value);
         }
     }
 
@@ -122,7 +130,6 @@ void read_config()
                     {
                         g_strlcpy(mg_htxy_global.platform_api_login_type,str,sizeof(mg_htxy_global.platform_api_login_type));
                     }
-                    hrjson_destroy(value);
                 }
 
                 value = hrjson_object_get_key(login,"url");
@@ -133,7 +140,6 @@ void read_config()
                     {
                         g_strlcpy(mg_htxy_global.platform_api_login_url,str,sizeof(mg_htxy_global.platform_api_login_url));
                     }
-                    hrjson_destroy(value);
                 }
             }
 
@@ -148,7 +154,6 @@ void read_config()
                     {
                         g_strlcpy(mg_htxy_global.platform_api_roster_type,str,sizeof(mg_htxy_global.platform_api_roster_type));
                     }
-                    hrjson_destroy(value);
                 }
 
                 value = hrjson_object_get_key(roster,"url");
@@ -159,7 +164,6 @@ void read_config()
                     {
                         g_strlcpy(mg_htxy_global.platform_api_roster_url,str,sizeof(mg_htxy_global.platform_api_roster_url));
                     }
-                    hrjson_destroy(value);
                 }
             }
 
@@ -174,7 +178,6 @@ void read_config()
                     {
                         g_strlcpy(mg_htxy_global.platform_api_count_type,str,sizeof(mg_htxy_global.platform_api_count_type));
                     }
-                    hrjson_destroy(value);
                 }
 
                 value = hrjson_object_get_key(count,"url");
@@ -185,7 +188,6 @@ void read_config()
                     {
                         g_strlcpy(mg_htxy_global.platform_api_count_url,str,sizeof(mg_htxy_global.platform_api_count_url));
                     }
-                    hrjson_destroy(value);
                 }
             }
 
@@ -200,7 +202,6 @@ void read_config()
                     {
                         g_strlcpy(mg_htxy_global.platform_api_context_type,str,sizeof(mg_htxy_global.platform_api_context_type));
                     }
-                    hrjson_destroy(value);
                 }
 
                 value = hrjson_object_get_key(context,"url");
@@ -211,7 +212,6 @@ void read_config()
                     {
                         g_strlcpy(mg_htxy_global.platform_api_context_url,str,sizeof(mg_htxy_global.platform_api_context_url));
                     }
-                    hrjson_destroy(value);
                 }
             }
         }
@@ -224,7 +224,6 @@ void read_config()
             {
                 g_strlcpy(mg_htxy_global.platform_name,str,sizeof(mg_htxy_global.platform_name));
             }
-            hrjson_destroy(value);
         }
 
         value = hrjson_object_get_key(platform,"url");
@@ -235,7 +234,6 @@ void read_config()
             {
                 g_strlcpy(mg_htxy_global.platform_url,str,sizeof(mg_htxy_global.platform_url));
             }
-            hrjson_destroy(value);
         }
 
         value = hrjson_object_get_key(platform,"web");
@@ -246,7 +244,6 @@ void read_config()
             {
                 g_strlcpy(mg_htxy_global.platform_web,str,sizeof(mg_htxy_global.platform_web));
             }
-            hrjson_destroy(value);
         }
 
         value = hrjson_object_get_key(platform,"type");
@@ -271,21 +268,25 @@ void read_config()
                     mg_htxy_global.is_use_person = TRUE ;
                 }
             }
-            hrjson_destroy(value);
         }
     }
 
     rv = 0 ;
 
 end:
-    ;
-//    if(root)
-//    {
-//        hrjson_destroy(root);
-//    }
+    if(root)
+    {
+        hrjson_destroy(root);
+    }
 }
 
 void write_config();
+
+///////////////////////////////////////////////////////
+///
+///  HTTP 通信 
+///
+///////////////////////////////////////////////////////
 
 char* user_login(const char* usrname , const char* password)
 {
@@ -342,7 +343,6 @@ char* user_login(const char* usrname , const char* password)
                             g_strlcpy(mg_htxy_global.organId,str,sizeof(mg_htxy_global.organId));
                             goto end ;
                         }
-                        hrjson_destroy(value);
                         value = NULL ;
                     }
                 }
@@ -369,8 +369,6 @@ char* user_login(const char* usrname , const char* password)
                 {
                     g_strlcpy(mg_htxy_global.session,str,sizeof(mg_htxy_global.session));
                 }
-                hrjson_destroy(value);
-                value = NULL ;
             }
         }
         g_snprintf(url_body,sizeof(url_body),"Parse Json Error : %s",msg->response_body->data);
@@ -382,11 +380,7 @@ char* user_login(const char* usrname , const char* password)
 
 end :
 
-//    if(value) { hrjson_destroy(value); value = NULL ; }
-//    if(organUser) { hrjson_destroy(organUser); }
-//    if(message) { hrjson_destroy(message); }
-//    if(body) { hrjson_destroy(body); }
-//    if(root) { hrjson_destroy(root); }
+    if(root) { hrjson_destroy(root); }
 
     if(msg)
     {
@@ -630,6 +624,38 @@ void update_person_item(DB_PERSON_ITEM*item)
         d.data = item ;
         d.size = sizeof(DB_ORGANS_ITEM);
         mg_db_person->put(mg_db_person, NULL, &k, &d,DB_OVERWRITE_DUP);
+        mg_db_person->sync(mg_db_person,0);
+        stat_db();
+    }
+}
+
+void delete_organs_item(DB_ORGANS_ITEM *item)
+{
+    DBT k={0} ;
+
+    open_search_db();
+
+    if(mg_db_organs)
+    {
+        k.data = &item->id;
+        k.size = sizeof(item->id);
+        mg_db_organs->del(mg_db_organs, NULL, &k, 0 ) ;
+        mg_db_organs->sync(mg_db_organs,0);
+        stat_db();
+    }
+}
+
+void delete_person_item(DB_PERSON_ITEM*item)
+{
+    DBT k={0} ;
+
+    open_search_db();
+
+    if(mg_db_person)
+    {
+        k.data = &item->id;
+        k.size = sizeof(item->id);
+        mg_db_person->del(mg_db_person, NULL, &k, 0 ) ;
         mg_db_person->sync(mg_db_person,0);
         stat_db();
     }

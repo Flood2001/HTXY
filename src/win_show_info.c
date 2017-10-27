@@ -259,8 +259,12 @@ static void Cwin_show_info_inst_init(Cwin_show_info *window)
     Cgtk_grid_table_attach(GTK_GRID_TABLE(table),bt,
         3,2,1,1, TRUE , TRUE , TRUE ,TRUE);
 
+    label = gtk_label_new("");
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(table),label,
+        0,3,4,1, TRUE , TRUE , TRUE ,TRUE);
+
     update_stat(window);
-    gtk_widget_set_usize(GTK_WIDGET(window), 500,300);
+    gtk_widget_set_usize(GTK_WIDGET(window), 550,400);
     Cwin_login_set_child((Cwin_login*)window , table);
 }
 //对象析构函数
