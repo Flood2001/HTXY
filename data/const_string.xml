@@ -78,4 +78,12 @@
     <ITEM> <id>94</id> <str>&lt;span foreground='black' &gt; 数据类型：&lt;/span&gt;</str> </ITEM>
     <ITEM> <id>95</id> <str>&lt;span foreground='black' &gt; 法人 &lt;/span&gt;</str> </ITEM>
     <ITEM> <id>96</id> <str>&lt;span foreground='black' &gt; 自然人 &lt;/span&gt;</str> </ITEM>
+        <!-- 配置界面 : 用户 -->
+    <ITEM> <id>101</id> <str>  账号：</str> </ITEM>
+    <ITEM> <id>102</id> <str>  密码：</str> </ITEM>
+    <ITEM> <id>103</id> <str>&lt;span foreground='white' bgcolor='blue' font_desc='12' &gt; 登录 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>104</id> <str>&lt;span foreground='red' &gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>105</id> <str>  单位：</str> </ITEM>
+    <ITEM> <id>106</id> <str>  用户：</str> </ITEM>
+    <ITEM> <id>107</id> <str>&lt;span foreground='white' bgcolor='blue' font_desc='12' &gt; 切换用户 &lt;/span&gt;</str> </ITEM>
 </CONST_STRING_TABLE>

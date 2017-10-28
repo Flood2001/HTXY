@@ -19,13 +19,6 @@ extern "C" {
 //#define USE_GENE_SIGNAL_CODE ///< 使用信号
 //#define USE_GENE_CLASS_PRIVATE_CODE ///< 使用类静态私有对象,需要glib2.24以上版本
 
-T_LANGUAGE_STRING sc_usrname = {"  账号：","User Name:"} ;
-T_LANGUAGE_STRING sc_password = {"  密码：","Password:"} ;
-T_LANGUAGE_STRING sc_rem_pass = {" 记住密码","Save password"} ;
-T_LANGUAGE_STRING sc_bt_login = {"<span foreground='white' bgcolor='blue' font_desc='12'>  登录  </span>","Login"} ;
-
-static const char *mg_error_str ="<span foreground='red' > %s</span>";
-
 //////////////////////////////////////////////////
 ///
 ///  私有成员数据结构
@@ -38,11 +31,7 @@ struct _c_win_main_frame_private {
     int m_is_login ;        ///< 是否已登录,0:未登录
 
     GtkWidget *m_child_table ;
-    //登录界面
-    GtkWidget *m_en_usrname ;
-    GtkWidget *m_en_password ;
-    GtkWidget *m_ck_rem_pass ;  ///< 记住用户名和密码
-    GtkWidget *m_label_error_str ;
+
     //统计界面
     GtkWidget *m_label_organs_all ;
     GtkWidget *m_label_organs_shishi ;
@@ -114,7 +103,6 @@ static void Cwin_main_frame_get_property(GObject *object,
         GParamSpec *pspec);
 #endif
 
-static void slog_bt_login(GtkButton *button, gpointer   user_data) ;
 static void slog_search_activate(GtkEntry *button, gpointer   user_data) ;
 static void slog_icon_press(GtkEntry            *entry,
     GtkEntryIconPosition icon_pos,
@@ -257,66 +245,7 @@ static void switch_view(Cwin_main_frame *window, int is_login )
     window->prv->m_is_login = is_login ;
     Cwin_login_clean_child((Cwin_login*)window);
 
-    if(is_login==0)
-    {
-        window->prv->m_child_table = GTK_WIDGET(Cgtk_grid_table_new());
-        
-        label = gtk_label_new(LOCAL_STRING(sc_usrname));
-        window->prv->m_en_usrname = gtk_entry_new();
-        g_snprintf(path,sizeof(path),"%simage/usr.png",exe_path);
-        gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_usrname),"gonganju");
-        bf = gdk_pixbuf_new_from_file(path,NULL);
-        if(bf)
-        {
-            gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(window->prv->m_en_usrname),GTK_ENTRY_ICON_SECONDARY,bf);
-            gtk_entry_set_icon_activatable(GTK_ENTRY(window->prv->m_en_usrname),GTK_ENTRY_ICON_SECONDARY,FALSE);
-            g_object_unref(G_OBJECT(bf));
-        }
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(label),
-            0,0,1,1, FALSE, TRUE , FALSE,TRUE);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_en_usrname),
-            1,0,1,1, TRUE, TRUE , TRUE,TRUE);
-
-        label = gtk_label_new(LOCAL_STRING(sc_password));
-        window->prv->m_en_password = gtk_entry_new();
-        g_snprintf(path,sizeof(path),"%simage/password.png",exe_path);
-        gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_password),"gonganju");
-        bf = gdk_pixbuf_new_from_file(path,NULL);
-        if(bf)
-        {
-            gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(window->prv->m_en_password),GTK_ENTRY_ICON_SECONDARY,bf);
-            gtk_entry_set_icon_activatable(GTK_ENTRY(window->prv->m_en_password),GTK_ENTRY_ICON_SECONDARY,FALSE);
-            g_object_unref(G_OBJECT(bf));
-        }
-        gtk_entry_set_visibility(GTK_ENTRY(window->prv->m_en_password),FALSE);
-        gtk_entry_set_activates_default(GTK_ENTRY(window->prv->m_en_password),TRUE);
-        g_signal_connect(G_OBJECT(window->prv->m_en_password),"activate",G_CALLBACK(slog_bt_login),window);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(label),
-            0,1,1,1, FALSE, TRUE , FALSE,TRUE);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_en_password),
-            1,1,1,1, TRUE, TRUE , TRUE,TRUE);
-
-        window->prv->m_ck_rem_pass = gtk_check_button_new_with_label(LOCAL_STRING(sc_rem_pass));
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(window->prv->m_ck_rem_pass),TRUE);
-        bt = gtk_button_new_with_label("   ");
-        label = gtk_label_new(LOCAL_STRING(sc_bt_login));
-        gtk_label_set_markup(GTK_LABEL(label),LOCAL_STRING(sc_bt_login));
-        gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
-        g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_login),window);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_ck_rem_pass),
-            0,2,2,1, TRUE , TRUE , TRUE ,TRUE);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(bt),
-            2,2,1,1, FALSE, TRUE , FALSE,TRUE);
-
-        window->prv->m_label_error_str = gtk_label_new("");
-        gtk_misc_set_alignment(GTK_MISC(window->prv->m_label_error_str), 0.1f , 0.5f);
-        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_child_table),GTK_WIDGET(window->prv->m_label_error_str),
-            0,3,3,1, TRUE , FALSE , TRUE ,FALSE);
-
-        Cwin_login_set_child((Cwin_login*)window , window->prv->m_child_table);
-        gtk_widget_show_all(GTK_WIDGET(window));
-    }
-    else
+    if(is_login == 1)
     {
         window->prv->m_child_table = GTK_WIDGET(Cgtk_grid_table_new());
 
@@ -504,33 +433,6 @@ void Cwin_main_frame_update(Cwin_main_frame* window)
 ///  私有函数实现
 ///
 ///////////////////////////////////////////////////
-
-static void slog_bt_login(GtkButton *button, gpointer   user_data) 
-{
-    Cwin_main_frame *window = (Cwin_main_frame *)user_data ;
-
-    const char* usrname ;
-    const char* password ;
-    char *msg ;
-    char buff[2056];
-
-    usrname = gtk_entry_get_text(GTK_ENTRY(window->prv->m_en_usrname));
-    password = gtk_entry_get_text(GTK_ENTRY(window->prv->m_en_password));
-
-    msg = user_login(usrname , password);
-    if(msg != NULL)
-    {
-        g_snprintf(buff,sizeof(buff),mg_error_str,msg);
-        gtk_label_set_text(GTK_LABEL(window->prv->m_label_error_str),buff);
-        gtk_label_set_markup(GTK_LABEL(window->prv->m_label_error_str),buff);
-        gtk_widget_show_all(GTK_WIDGET(window));
-        g_free(msg);
-    }
-    else
-    {
-        switch_view(window,1);
-    }
-}
 
 static void slog_search_activate(GtkEntry *button, gpointer   user_data) 
 {

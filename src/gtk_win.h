@@ -49,6 +49,14 @@ typedef struct tag_htxy_global {
     char platform_name[TYPE_URL_MAX_LEN] ;
     char platform_url[TYPE_URL_MAX_LEN] ;
     char platform_web[TYPE_URL_MAX_LEN] ;
+
+    // 用户信息
+    gboolean userinfo_status ;
+    char userinfo_dept[TYPE_URL_MAX_LEN] ;
+    char userinfo_user[TYPE_URL_MAX_LEN] ;
+    char userinfo_token[TYPE_URL_MAX_LEN] ;
+    char userinfo_deptId[TYPE_URL_MAX_LEN] ;
+    char userinfo_userId[TYPE_URL_MAX_LEN] ;
 } HTXY_GLOBAL ;
 
 void exit_process();

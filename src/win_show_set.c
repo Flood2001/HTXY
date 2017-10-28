@@ -31,9 +31,16 @@ T_LANGUAGE_STRING sc_bt_liji = {"<span weight='bold' foreground='#0000C0' font_d
 
 //对象的私有数据
 struct _c_win_show_set_private {
+    gboolean m_is_login ;
     //用户
     GtkWidget *m_user_child_frame;
+    GtkWidget *m_user_child_table;
+    //登录界面
+    GtkWidget *m_en_usrname ;
+    GtkWidget *m_en_password ;
+    GtkWidget *m_label_error_str ;
 
+    //应用
     GtkWidget *m_en_url ;
     GtkWidget *m_en_web ;
     GtkWidget *m_en_app_name;
@@ -108,6 +115,8 @@ static void Cwin_show_set_get_property(GObject *object,
 
 static void slog_bt_update_utl(GtkButton *button, gpointer   user_data) ;
 void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data) ;
+static void slog_bt_login(GtkButton *button, gpointer   user_data) ;
+static void slog_bt_relogin(GtkButton *button, gpointer   user_data) ;
 //////////////////////////////////////////////////
 ///
 ///  类基本函数实现
@@ -209,6 +218,145 @@ static void update_date(Cwin_show_set *window)
     gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_delay),buff);
 }
 
+static void switch_user_view(Cwin_show_set*window, int is_login )
+{
+    GtkWidget *label ;
+    GtkWidget *bt ;
+    GtkWidget *entry ;
+    GdkPixbuf *bf; 
+    char path[256];
+
+    if(is_login == window->prv->m_is_login )
+    {
+        return ;
+    }
+
+    window->prv->m_is_login = is_login ;
+
+    if(window->prv->m_user_child_table != NULL)
+    {
+        gtk_container_remove(GTK_CONTAINER(window->prv->m_user_child_frame),GTK_WIDGET(window->prv->m_user_child_table));
+        window->prv->m_user_child_table = NULL ;
+    }
+    window->prv->m_user_child_table = GTK_WIDGET(Cgtk_grid_table_new());
+    gtk_container_add(GTK_CONTAINER(window->prv->m_user_child_frame),GTK_WIDGET(window->prv->m_user_child_table));
+
+    if(is_login==0)
+    {
+        label = gtk_label_new(get_const_str(101));
+        gtk_label_set_markup(GTK_LABEL(label),get_const_str(101));
+        window->prv->m_en_usrname = gtk_entry_new();
+        g_snprintf(path,sizeof(path),"%simage/usr.png",mg_htxy_global.exe_dir);
+        gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_usrname),"gonganju");
+        bf = gdk_pixbuf_new_from_file(path,NULL);
+        if(bf)
+        {
+            gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(window->prv->m_en_usrname),GTK_ENTRY_ICON_SECONDARY,bf);
+            gtk_entry_set_icon_activatable(GTK_ENTRY(window->prv->m_en_usrname),GTK_ENTRY_ICON_SECONDARY,FALSE);
+            g_object_unref(G_OBJECT(bf));
+        }
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(label),
+            0,0,1,1, FALSE, TRUE , FALSE,TRUE);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(window->prv->m_en_usrname),
+            1,0,2,1, TRUE, TRUE , TRUE,TRUE);
+
+        label = gtk_label_new(get_const_str(102));
+        gtk_label_set_markup(GTK_LABEL(label),get_const_str(102));
+        window->prv->m_en_password = gtk_entry_new();
+        g_snprintf(path,sizeof(path),"%simage/password.png",mg_htxy_global.exe_dir);
+        gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_password),"gonganju");
+        bf = gdk_pixbuf_new_from_file(path,NULL);
+        if(bf)
+        {
+            gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(window->prv->m_en_password),GTK_ENTRY_ICON_SECONDARY,bf);
+            gtk_entry_set_icon_activatable(GTK_ENTRY(window->prv->m_en_password),GTK_ENTRY_ICON_SECONDARY,FALSE);
+            g_object_unref(G_OBJECT(bf));
+        }
+        gtk_entry_set_visibility(GTK_ENTRY(window->prv->m_en_password),FALSE);
+        gtk_entry_set_activates_default(GTK_ENTRY(window->prv->m_en_password),TRUE);
+        g_signal_connect(G_OBJECT(window->prv->m_en_password),"activate",G_CALLBACK(slog_bt_login),window);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(label),
+            0,1,1,1, FALSE, TRUE , FALSE,TRUE);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(window->prv->m_en_password),
+            1,1,2,1, TRUE, TRUE , TRUE,TRUE);
+
+        bt = gtk_button_new_with_label("  ");
+        label = gtk_label_new(get_const_str(103));
+        gtk_label_set_markup(GTK_LABEL(label),get_const_str(103));
+        gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
+        g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_login),window);
+        label = gtk_label_new("");
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(label),
+            0,2,1,1, TRUE , TRUE , TRUE ,TRUE);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(bt),
+            2,2,1,1, FALSE, TRUE , FALSE,TRUE);
+
+        window->prv->m_label_error_str = gtk_label_new("");
+        gtk_misc_set_alignment(GTK_MISC(window->prv->m_label_error_str), 0.1f , 0.5f);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(window->prv->m_label_error_str),
+            0,3,3,1, TRUE , TRUE , TRUE ,FALSE);
+
+    }
+    else
+    {
+        label = gtk_label_new(get_const_str(105));
+        gtk_label_set_markup(GTK_LABEL(label),get_const_str(105));
+        entry = gtk_entry_new();
+        g_snprintf(path,sizeof(path),"%simage/usr.png",mg_htxy_global.exe_dir);
+        gtk_entry_set_text(GTK_ENTRY(entry),mg_htxy_global.userinfo_dept);
+        bf = gdk_pixbuf_new_from_file(path,NULL);
+        if(bf)
+        {
+            gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(entry),GTK_ENTRY_ICON_SECONDARY,bf);
+            gtk_entry_set_icon_activatable(GTK_ENTRY(entry),GTK_ENTRY_ICON_SECONDARY,FALSE);
+            g_object_unref(G_OBJECT(bf));
+        }
+        gtk_widget_set_sensitive(GTK_WIDGET(entry),FALSE);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(label),
+            0,0,1,1, FALSE, TRUE , FALSE,TRUE);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(entry),
+            1,0,2,1, TRUE, TRUE , TRUE,TRUE);
+
+        label = gtk_label_new(get_const_str(106));
+        gtk_label_set_markup(GTK_LABEL(label),get_const_str(106));
+        entry = gtk_entry_new();
+        g_snprintf(path,sizeof(path),"%simage/password.png",mg_htxy_global.exe_dir);
+        gtk_entry_set_text(GTK_ENTRY(entry),mg_htxy_global.userinfo_user);
+        bf = gdk_pixbuf_new_from_file(path,NULL);
+        if(bf)
+        {
+            gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(entry),GTK_ENTRY_ICON_SECONDARY,bf);
+            gtk_entry_set_icon_activatable(GTK_ENTRY(entry),GTK_ENTRY_ICON_SECONDARY,FALSE);
+            g_object_unref(G_OBJECT(bf));
+        }
+        gtk_widget_set_sensitive(GTK_WIDGET(entry),FALSE);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(label),
+            0,1,1,1, FALSE, TRUE , FALSE,TRUE);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(entry),
+            1,1,2,1, TRUE, TRUE , TRUE,TRUE);
+
+        bt = gtk_button_new_with_label("  ");
+        label = gtk_label_new(get_const_str(107));
+        gtk_label_set_markup(GTK_LABEL(label),get_const_str(107));
+        gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
+        g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_relogin),window);
+        label = gtk_label_new("");
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(label),
+            0,2,1,1, TRUE , TRUE , TRUE ,TRUE);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(bt),
+            2,2,1,1, FALSE, TRUE , FALSE,TRUE);
+
+        window->prv->m_label_error_str = gtk_label_new("");
+        gtk_misc_set_alignment(GTK_MISC(window->prv->m_label_error_str), 0.1f , 0.5f);
+        Cgtk_grid_table_attach(GTK_GRID_TABLE(window->prv->m_user_child_table),GTK_WIDGET(window->prv->m_label_error_str),
+            0,3,3,1, TRUE , TRUE , TRUE ,FALSE);
+    }
+
+    gtk_widget_show_all(GTK_WIDGET(window));
+    
+}
+
+
 //对象构造函数
 static void Cwin_show_set_inst_init(Cwin_show_set *window)
 {
@@ -227,6 +375,7 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
     char path[256];
 
     window->prv = WIN_SHOW_SET_GET_PRIVATE(window);
+    window->prv->m_is_login = -1 ;
 
     /// 主NoteBook
     main_notebook = gtk_notebook_new();
@@ -272,9 +421,16 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
         0,0,1,1, TRUE, FALSE, TRUE,TRUE);
     Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(sep),
         0,1,1,1, TRUE, FALSE, TRUE,TRUE);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(frame),
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(window->prv->m_user_child_frame),
         0,2,1,1, TRUE, TRUE , TRUE,TRUE);
+    switch_user_view(window, mg_htxy_global.userinfo_status ) ;
 
+    sep = gtk_hseparator_new();
+    label = gtk_label_new("");
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(sep),
+        0,3,1,1, TRUE, TRUE , TRUE,TRUE);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(label),
+        0,4,1,1, TRUE, TRUE , TRUE,TRUE);
 
     /// 应用参数
     line = 0 ;
@@ -502,6 +658,42 @@ static void slog_bt_update_utl(GtkButton *button, gpointer   user_data)
 static void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data)
 {
     update_all_db() ;
+}
+
+static void slog_bt_login(GtkButton *button, gpointer   user_data) 
+{
+    Cwin_show_set *window = (Cwin_show_set*)user_data ;
+
+    const char* usrname ;
+    const char* password ;
+    char *msg ;
+    char buff[2056];
+
+    usrname = gtk_entry_get_text(GTK_ENTRY(window->prv->m_en_usrname));
+    password = gtk_entry_get_text(GTK_ENTRY(window->prv->m_en_password));
+
+    msg = user_login(usrname , password);
+    if(msg != NULL)
+    {
+        g_snprintf(buff,sizeof(buff),get_const_str(104),msg);
+        gtk_label_set_text(GTK_LABEL(window->prv->m_label_error_str),buff);
+        gtk_label_set_markup(GTK_LABEL(window->prv->m_label_error_str),buff);
+        gtk_widget_show_all(GTK_WIDGET(window));
+        g_free(msg);
+    }
+    else
+    {
+        mg_htxy_global.userinfo_status = TRUE ;
+        switch_user_view(window,1);
+    }
+}
+
+static void slog_bt_relogin(GtkButton *button, gpointer   user_data)
+{
+    Cwin_show_set *window = (Cwin_show_set*)user_data ;
+
+    mg_htxy_global.userinfo_status = FALSE ;
+    switch_user_view(window,0);
 }
 
 #ifdef __cplusplus
