@@ -63,16 +63,15 @@ void read_config()
     HR_JSON root ;
     HR_JSON listenser ;
     HR_JSON platform ;
+    HR_JSON userinfo ;
     HR_JSON value ;
     gint i ;
     int rv = -1 ;
     const char* str;
 
-    char exe_path[256];
     char path[256];
 
-    hrutil_get_exe_dir(exe_path);
-    g_snprintf(path,sizeof(path),"%sdata/setting.json",exe_path);
+    g_snprintf(path,sizeof(path),"%sdata/setting.json",mg_htxy_global.exe_dir);
 
     root = hrjson_load_file(path);
     if(root == NULL)
@@ -103,6 +102,19 @@ void read_config()
                 mg_htxy_global.listenser_watch = i ;
             }
         }
+
+        value = hrjson_object_get_key(listenser,"isync");
+        if(value)
+        {
+            if( hrjson_get_type(value) == HRJSON_TYPE_TRUE )
+            {
+                mg_htxy_global.listenser_isync = TRUE ;
+            }
+            else
+            {
+                mg_htxy_global.listenser_isync = FALSE ;
+            }
+        }
     }
 
     //platform
@@ -110,107 +122,42 @@ void read_config()
     if(platform)
     {
         HR_JSON api ;
+        HR_JSON item ;
 
         api = hrjson_object_get_key(platform,"api");
         if(api)
         {
-            HR_JSON login ;
-            HR_JSON roster ;
-            HR_JSON count ;
-            HR_JSON context ;
+            guint index ;
 
-            login = hrjson_object_get_key(api,"login");
-            if(login)
+            hrjson_array_foreach(api, index, item)
             {
-                value = hrjson_object_get_key(login,"type");
+                value = hrjson_object_get_key(item,"name");
                 if(value)
                 {
                     str = hrjson_get_string(value);
                     if(str)
                     {
-                        g_strlcpy(mg_htxy_global.platform_api_login_type,str,sizeof(mg_htxy_global.platform_api_login_type));
+                        g_strlcpy(mg_htxy_global.api[index].name,str,sizeof(mg_htxy_global.api[index].name));
                     }
                 }
 
-                value = hrjson_object_get_key(login,"url");
+                value = hrjson_object_get_key(item,"type");
                 if(value)
                 {
                     str = hrjson_get_string(value);
                     if(str)
                     {
-                        g_strlcpy(mg_htxy_global.platform_api_login_url,str,sizeof(mg_htxy_global.platform_api_login_url));
-                    }
-                }
-            }
-
-            roster = hrjson_object_get_key(api,"roster");
-            if(roster)
-            {
-                value = hrjson_object_get_key(roster,"type");
-                if(value)
-                {
-                    str = hrjson_get_string(value);
-                    if(str)
-                    {
-                        g_strlcpy(mg_htxy_global.platform_api_roster_type,str,sizeof(mg_htxy_global.platform_api_roster_type));
+                        g_strlcpy(mg_htxy_global.api[index].type,str,sizeof(mg_htxy_global.api[index].type));
                     }
                 }
 
-                value = hrjson_object_get_key(roster,"url");
+                value = hrjson_object_get_key(item,"url");
                 if(value)
                 {
                     str = hrjson_get_string(value);
                     if(str)
                     {
-                        g_strlcpy(mg_htxy_global.platform_api_roster_url,str,sizeof(mg_htxy_global.platform_api_roster_url));
-                    }
-                }
-            }
-
-            count = hrjson_object_get_key(api,"count");
-            if(count)
-            {
-                value = hrjson_object_get_key(count,"type");
-                if(value)
-                {
-                    str = hrjson_get_string(value);
-                    if(str)
-                    {
-                        g_strlcpy(mg_htxy_global.platform_api_count_type,str,sizeof(mg_htxy_global.platform_api_count_type));
-                    }
-                }
-
-                value = hrjson_object_get_key(count,"url");
-                if(value)
-                {
-                    str = hrjson_get_string(value);
-                    if(str)
-                    {
-                        g_strlcpy(mg_htxy_global.platform_api_count_url,str,sizeof(mg_htxy_global.platform_api_count_url));
-                    }
-                }
-            }
-
-            context = hrjson_object_get_key(api,"context");
-            if(context)
-            {
-                value = hrjson_object_get_key(context,"type");
-                if(value)
-                {
-                    str = hrjson_get_string(value);
-                    if(str)
-                    {
-                        g_strlcpy(mg_htxy_global.platform_api_context_type,str,sizeof(mg_htxy_global.platform_api_context_type));
-                    }
-                }
-
-                value = hrjson_object_get_key(context,"url");
-                if(value)
-                {
-                    str = hrjson_get_string(value);
-                    if(str)
-                    {
-                        g_strlcpy(mg_htxy_global.platform_api_context_url,str,sizeof(mg_htxy_global.platform_api_context_url));
+                        g_strlcpy(mg_htxy_global.api[index].url,str,sizeof(mg_htxy_global.api[index].url));
                     }
                 }
             }
@@ -271,6 +218,79 @@ void read_config()
         }
     }
 
+    //userinfo
+    userinfo = hrjson_object_get_key(root,"userinfo");
+    if(userinfo)
+    {
+        HR_JSON result ;
+        value = hrjson_object_get_key(userinfo,"status");
+        if(value)
+        {
+            if( hrjson_get_type(value) == HRJSON_TYPE_TRUE )
+            {
+                mg_htxy_global.userinfo_status = TRUE ;
+            }
+            else
+            {
+                mg_htxy_global.userinfo_status = FALSE ;
+            }
+        }
+
+        result = hrjson_object_get_key(userinfo,"result");
+        if(result)
+        {
+            value = hrjson_object_get_key(listenser,"dept");
+            if(value)
+            {
+                str = hrjson_get_string(value);
+                if(str)
+                {
+                    g_strlcpy(mg_htxy_global.userinfo_dept,str,sizeof(mg_htxy_global.userinfo_dept));
+                }
+            }
+
+            value = hrjson_object_get_key(listenser,"user");
+            if(value)
+            {
+                str = hrjson_get_string(value);
+                if(str)
+                {
+                    g_strlcpy(mg_htxy_global.userinfo_user,str,sizeof(mg_htxy_global.userinfo_user));
+                }
+            }
+
+            value = hrjson_object_get_key(listenser,"token");
+            if(value)
+            {
+                str = hrjson_get_string(value);
+                if(str)
+                {
+                    g_strlcpy(mg_htxy_global.userinfo_token,str,sizeof(mg_htxy_global.userinfo_token));
+                }
+            }
+
+            value = hrjson_object_get_key(listenser,"deptId");
+            if(value)
+            {
+                str = hrjson_get_string(value);
+                if(str)
+                {
+                    g_strlcpy(mg_htxy_global.userinfo_deptId,str,sizeof(mg_htxy_global.userinfo_deptId));
+                }
+            }
+
+            value = hrjson_object_get_key(listenser,"userId");
+            if(value)
+            {
+                str = hrjson_get_string(value);
+                if(str)
+                {
+                    g_strlcpy(mg_htxy_global.userinfo_userId,str,sizeof(mg_htxy_global.userinfo_userId));
+                }
+            }
+        }
+    }
+
     rv = 0 ;
 
 end:
@@ -287,6 +307,10 @@ void write_config();
 ///  HTTP м╗пе 
 ///
 ///////////////////////////////////////////////////////
+static API_ITEM* get_api_by_index(int index)
+{
+    return &mg_htxy_global.api[index] ;
+}
 
 char* user_login(const char* usrname , const char* password)
 {
@@ -301,10 +325,12 @@ char* user_login(const char* usrname , const char* password)
     HR_JSON message = NULL ;
     HR_JSON organUser= NULL ;
     HR_JSON value = NULL ;
+    API_ITEM *api_item ;
 
-    g_snprintf(url,sizeof(url),"%s%s",mg_htxy_global.platform_url,mg_htxy_global.platform_api_login_url);
+    api_item = get_api_by_index(0);
+    g_snprintf(url,sizeof(url),"%s%s",mg_htxy_global.platform_url,api_item->url);
     ss = soup_session_sync_new();
-    msg = soup_message_new (mg_htxy_global.platform_api_login_type, url);
+    msg = soup_message_new (api_item->type, url);
     if(msg)
     {
         //soup_message_headers_append(msg->request_headers,"Cache-Control","max-age=0");
@@ -409,11 +435,13 @@ gboolean read_roster()
     HR_JSON message = NULL ;
     HR_JSON organUser= NULL ;
     HR_JSON value = NULL ;
+    API_ITEM *api_item ;
 
+    api_item = get_api_by_index(5);
     ss = soup_session_sync_new();
     g_snprintf(url,sizeof(url),"%s%s?organId=%s&dataType=1",mg_htxy_global.platform_url,
-        mg_htxy_global.platform_api_roster_url,mg_htxy_global.organId);
-    msg = soup_message_new (mg_htxy_global.platform_api_roster_type, url);
+        api_item->url,mg_htxy_global.organId);
+    msg = soup_message_new (api_item->type, url);
     if(msg)
     {
         soup_message_headers_append(msg->request_headers,"Content-Type","application/x-www-form-urlencoded");

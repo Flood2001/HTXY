@@ -6,24 +6,43 @@
         "last_sync_time": "未同步"
     },
     "platform": {
-        "api": {
-            "login": {
+        "api": [
+            {
+                "name": "登录接口",
                 "type": "post",
                 "url": "auth/login"
             },
-            "roster": {
+            {
+                "name": "登出接口",
+                "type": "get",
+                "url": "auth/logout"
+            },
+            {
+                "name": "获取奖惩信息接口",
+                "type": "get",
+                "url": "lhjc/jc/{type}/query/{method}"
+            },
+            {
+                "name": "获取认定事由接口",
+                "type": "get",
+                "url": "lhjc/jc/query/reasons"
+            },
+            {
+                "name": "奖惩实施接口",
+                "type": "post",
+                "url": "lhjc/jc/{type}"
+            },
+            {
+                "name": "红黑名单同步接口",
                 "type": "get",
                 "url": "lhjc/jc/query/weixin"
             },
-            "count": {
+            {
+                "name": "谷歌插件",
                 "type": "get",
-                "url": "lhjc/count/datatype/2"
-            },
-            "context": {
-                "type": "put",
-                "url": "common/context"
+                "url": "plugin/chrome/plugin.crx"
             }
-        },
+        ],
         "type": "rsondb",
         "name": "海豚信用微门户",
         "url": "http://101.231.89.71:9090/credit/",

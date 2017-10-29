@@ -8,7 +8,14 @@ extern "C"{
 #endif
 
 #define TYPE_URL_MAX_LEN 1024
+#define TYPE_URL_MAX_API_COUNT 10
 /// 全局
+typedef struct tag_htxy_global_api_item {
+    char name[TYPE_URL_MAX_LEN] ; 
+    char type[TYPE_URL_MAX_LEN] ; 
+    char url[TYPE_URL_MAX_LEN] ; 
+} API_ITEM ;
+
 typedef struct tag_htxy_global {
     char exe_dir[TYPE_URL_MAX_LEN];
     //登录信息
@@ -37,14 +44,7 @@ typedef struct tag_htxy_global {
     gboolean is_use_person ;    ///< 是否使用自然人库
 
     //接口配置
-    char platform_api_login_type[TYPE_URL_MAX_LEN] ;
-    char platform_api_login_url[TYPE_URL_MAX_LEN] ;
-    char platform_api_roster_type[TYPE_URL_MAX_LEN] ;
-    char platform_api_roster_url[TYPE_URL_MAX_LEN] ;
-    char platform_api_count_type[TYPE_URL_MAX_LEN] ;
-    char platform_api_count_url[TYPE_URL_MAX_LEN] ;
-    char platform_api_context_type[TYPE_URL_MAX_LEN] ;
-    char platform_api_context_url[TYPE_URL_MAX_LEN] ;
+    API_ITEM api[TYPE_URL_MAX_API_COUNT] ;
     char platform_type[TYPE_URL_MAX_LEN] ;
     char platform_name[TYPE_URL_MAX_LEN] ;
     char platform_url[TYPE_URL_MAX_LEN] ;
