@@ -26,9 +26,6 @@ extern "C" {
 ///
 ///////////////////////////////////////////////////
 
-T_LANGUAGE_STRING sc_tongbu = {"<span weight='bold' font_desc='12'> 数据同步：</span>","Name:"} ;
-T_LANGUAGE_STRING sc_bt_liji = {"<span weight='bold' foreground='#0000C0' font_desc='12'> 立即同步 </span>","Name:"} ;
-
 //对象的私有数据
 struct _c_win_show_set_private {
     gboolean m_is_login ;
@@ -115,6 +112,8 @@ static void Cwin_show_set_get_property(GObject *object,
 
 static void slog_bt_update_utl(GtkButton *button, gpointer   user_data) ;
 void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data) ;
+static gboolean slog_main_book_change_page(GtkNotebook *notebook,
+          gint         arg1, gpointer     user_data);
 static void slog_bt_login(GtkButton *button, gpointer   user_data) ;
 static void slog_bt_relogin(GtkButton *button, gpointer   user_data) ;
 //////////////////////////////////////////////////
@@ -393,6 +392,7 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
     Cfunc_label_markup_text((Cfunc_label*)label,get_const_str(82));
     gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook),port_table,label);
 
+
     /// 系统设置
     user_table = GTK_WIDGET(Cgtk_grid_table_new());
     param_table = GTK_WIDGET(Cgtk_grid_table_new());
@@ -577,6 +577,7 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
     gtk_widget_set_usize(GTK_WIDGET(window), 700,600);
     Cwin_login_set_child((Cwin_login*)window , GTK_WIDGET(main_notebook));
     update_date(window);
+    gtk_widget_show_all(GTK_WIDGET(window));
 }
 
 //对象析构函数
@@ -658,6 +659,12 @@ static void slog_bt_update_utl(GtkButton *button, gpointer   user_data)
 static void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data)
 {
     update_all_db() ;
+}
+
+static gboolean slog_main_book_change_page(GtkNotebook *notebook,
+          gint         arg1, gpointer     user_data)
+{
+    return FALSE ;
 }
 
 static void slog_bt_login(GtkButton *button, gpointer   user_data) 

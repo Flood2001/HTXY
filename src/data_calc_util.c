@@ -300,7 +300,124 @@ end:
     }
 }
 
-void write_config();
+void write_config()
+{
+    HR_JSON root ;
+    HR_JSON listenser ;
+    HR_JSON platform ;
+    HR_JSON userinfo ;
+    HR_JSON api ;
+    gint i ;
+    int rv = -1 ;
+
+    char path[256];
+
+    g_snprintf(path,sizeof(path),"%sdata/setting.json",mg_htxy_global.exe_dir);
+
+    root = hrjson_create_object();
+    if(root == NULL)
+    {
+        goto end ;
+    }
+
+    //listenser
+    listenser = hrjson_create_object();
+    if(listenser)
+    {
+        hrjson_object_set_key(root,"listenser",listenser);
+        hrjson_object_set_key(listenser,"delay",hrjson_create_integer(mg_htxy_global.listenser_delay));
+        hrjson_object_set_key(listenser,"watch",hrjson_create_integer(mg_htxy_global.listenser_watch));
+        if(mg_htxy_global.listenser_isync)
+        {
+            hrjson_object_set_key(listenser,"watch",hrjson_create_true());
+        }
+        else
+        {
+            hrjson_object_set_key(listenser,"watch",hrjson_create_false());
+        }
+    }
+
+    //platform
+    platform = hrjson_create_object();
+    if(platform)
+    {
+        HR_JSON js ;
+        API_ITEM *item ;
+
+        hrjson_object_set_key(root,"platform",platform);
+        hrjson_object_set_key(platform,"name",hrjson_create_string(mg_htxy_global.platform_name));
+        hrjson_object_set_key(platform,"url",hrjson_create_string(mg_htxy_global.platform_url));
+        hrjson_object_set_key(platform,"web",hrjson_create_string(mg_htxy_global.platform_web));
+        if( (mg_htxy_global.is_use_person == TRUE ) && ( mg_htxy_global.is_use_organs == FALSE ) )
+        {
+            hrjson_object_set_key(platform,"type",hrjson_create_string("persondb"));
+        }
+        else if( (mg_htxy_global.is_use_person == FALSE ) && ( mg_htxy_global.is_use_organs == TRUE) )
+        {
+            hrjson_object_set_key(platform,"type",hrjson_create_string("organsdb"));
+        }
+        else
+        {
+            hrjson_object_set_key(platform,"type",hrjson_create_string("alldb"));
+        }
+        
+        api = hrjson_create_array();
+        hrjson_object_set_key(platform,"api",api);
+        for(i=0;i<TYPE_URL_MAX_API_COUNT;i++)
+        {
+            item = &mg_htxy_global.api[i] ;
+            if(item->type[0] != '\0' )
+            {
+                js = hrjson_create_object();
+                hrjson_object_set_key(js,"name",hrjson_create_string(item->name));
+                hrjson_object_set_key(js,"type",hrjson_create_string(item->type));
+                hrjson_object_set_key(js,"url",hrjson_create_string(item->url));
+            }
+            hrjson_array_append(api,js);
+        }
+    }
+
+    //userinfo
+    userinfo = hrjson_create_object();
+    if(userinfo)
+    {
+        HR_JSON result ;
+
+        hrjson_object_set_key(root,"userinfo",userinfo);
+        if(mg_htxy_global.userinfo_status)
+        {
+            hrjson_object_set_key(userinfo,"status",hrjson_create_true());
+        }
+        else
+        {
+            hrjson_object_set_key(userinfo,"status",hrjson_create_false());
+        }
+
+        result = hrjson_create_object();
+        if(result)
+        {
+            hrjson_object_set_key(userinfo,"result",result);
+            hrjson_object_set_key(result,"dept",hrjson_create_string(mg_htxy_global.userinfo_dept));
+            hrjson_object_set_key(result,"user",hrjson_create_string(mg_htxy_global.userinfo_user));
+            hrjson_object_set_key(result,"token",hrjson_create_string(mg_htxy_global.userinfo_token));
+            hrjson_object_set_key(result,"deptId",hrjson_create_string(mg_htxy_global.userinfo_deptId));
+            hrjson_object_set_key(result,"userId",hrjson_create_string(mg_htxy_global.userinfo_userId));
+        }
+    }
+
+    if(root)
+    {
+        hrjson_write_file(root,path);
+    }
+
+    rv = 0 ;
+
+end:
+    if(root)
+    {
+        hrjson_destroy(root);
+    }
+}
 
 ///////////////////////////////////////////////////////
 ///

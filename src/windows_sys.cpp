@@ -271,7 +271,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetWindowText(g_hEdit,g_msg_text);
         }
         SetTimer(hWnd,1,mg_htxy_global.listenser_watch,NULL);
-        SetTimer(hWnd,2,mg_htxy_global.listenser_delay,NULL);
+        SetTimer(hWnd,2,mg_htxy_global.listenser_delay*60*1000,NULL);
 
         //ÏµÍ³Í¼±ê
         m_TrayIcon.hInstance = hInst ;
