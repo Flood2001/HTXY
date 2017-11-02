@@ -242,6 +242,7 @@ int main(int argc,char **argv)
     gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET(child));
     Cwin_login_set_parent_window(WIN_LOGIN(child), GTK_WINDOW(window));
     gtk_window_set_title(GTK_WINDOW(window), mg_htxy_global.platform_name);
+    Cwin_login_set_title(WIN_LOGIN(child),mg_htxy_global.platform_name);
     mg_initWidget  = window ;
 
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);

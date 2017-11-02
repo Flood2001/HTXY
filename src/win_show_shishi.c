@@ -250,8 +250,8 @@ static void Cwin_show_shishi_inst_init(Cwin_show_shishi *window)
         1,line,1,1, TRUE , TRUE , TRUE,TRUE);
     line++ ;
 
-    window->prv->m_label_shijian = gtk_label_new(get_const_str(155));
-    gtk_label_set_markup(GTK_LABEL(window->prv->m_label_shijian), get_const_str(155));
+    window->prv->m_label_shijian = gtk_label_new(get_const_str(161));
+    gtk_label_set_markup(GTK_LABEL(window->prv->m_label_shijian), get_const_str(161));
     gtk_misc_set_alignment(GTK_MISC(window->prv->m_label_shijian), 1.0f , 0.5f);
     bt = gtk_button_new_with_label("");
     window->prv->m_entry_shijian = gtk_label_new("");
