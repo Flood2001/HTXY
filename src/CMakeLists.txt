@@ -9,6 +9,8 @@ ADD_EXECUTABLE(HTXY WIN32 ${NM3000_APP_SRC}
     win_login.h
     win_main_frame.c
     win_main_frame.h
+    win_show_shishi.c
+    win_show_shishi.h
     win_show_info.c
     win_show_info.h
     win_show_set.c

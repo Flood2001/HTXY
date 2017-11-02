@@ -7,9 +7,9 @@
 /// @brief Ö÷½çÃæ
 /////////////////////////////////////////////////////
 #include <hrutil/hrutil.h>
+#include "data_calc_util.h"
 #include "win_main_frame.h"
 #include "gtk_win.h"
-#include "data_calc_util.h"
 
 #ifdef __cplusplus
 extern "C" {

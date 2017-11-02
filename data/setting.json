@@ -1,61 +1,52 @@
 {
-    "listenser": {
-        "delay": 30 ,
-        "watch": 500,
-        "isync": false ,
-        "last_sync_time": "未同步"
-    },
-    "platform": {
-        "api": [
-            {
-                "name": "登录接口",
-                "type": "post",
-                "url": "auth/login"
-            },
-            {
-                "name": "登出接口",
-                "type": "get",
-                "url": "auth/logout"
-            },
-            {
-                "name": "获取奖惩信息接口",
-                "type": "get",
-                "url": "lhjc/jc/{type}/query/{method}"
-            },
-            {
-                "name": "获取认定事由接口",
-                "type": "get",
-                "url": "lhjc/jc/query/reasons"
-            },
-            {
-                "name": "奖惩实施接口",
-                "type": "post",
-                "url": "lhjc/jc/{type}"
-            },
-            {
-                "name": "红黑名单同步接口",
-                "type": "get",
-                "url": "lhjc/jc/query/weixin"
-            },
-            {
-                "name": "谷歌插件",
-                "type": "get",
-                "url": "plugin/chrome/plugin.crx"
-            }
-        ],
-        "type": "rsondb",
-        "name": "海豚信用微门户",
-        "url": "http://101.231.89.71:9090/credit/",
-        "web": "http://192.168.30.191:8080/credit/"
-    },
-    "userinfo":{
-        "status":true, 
-        "result":{
-            "dept":"市公安局", 
-            "user":"公安局用户", 
-            "token":"4c84714a-8936-4b39-9a74-d1be8abcc867", 
-            "deptId":"OuLi20070618112218113",
-            "userId":"40289e3f5e60dd5d015e60e225340003"
-        }
-    }
+	"listenser":	{
+		"delay":	30,
+		"watch":	500,
+		"isync":	true
+	},
+	"platform":	{
+		"name":	"海豚信用微门户",
+		"url":	"http://101.231.89.71:9090/credit/",
+		"web":	"http://192.168.30.191:8080/credit/",
+		"type":	"alldb",
+		"api":	[{
+				"name":	"登录接口",
+				"type":	"post",
+				"url":	"auth/login"
+			}, {
+				"name":	"登出接口",
+				"type":	"get",
+				"url":	"auth/logout"
+			}, {
+				"name":	"获取奖惩信息接口",
+				"type":	"get",
+				"url":	"lhjc/jc/{type}/query/{method}"
+			}, {
+				"name":	"获取认定事由接口",
+				"type":	"get",
+				"url":	"lhjc/jc/query/reasons"
+			}, {
+				"name":	"奖惩实施接口",
+				"type":	"post",
+				"url":	"lhjc/jc/{type}"
+			}, {
+				"name":	"红黑名单同步接口",
+				"type":	"get",
+				"url":	"lhjc/jc/query/weixin"
+			}, {
+				"name":	"谷歌插件",
+				"type":	"get",
+				"url":	"plugin/chrome/plugin.crx"
+			}]
+	},
+	"userinfo":	{
+		"status":	false ,
+		"result":	{
+			"dept":	"市公安局",
+			"user":	"公安局用户",
+			"token":	"f5250c09-8050-4c0e-81dc-8c0e360f7022",
+			"deptId":	"",
+			"userId":	""
+		}
+	}
 }

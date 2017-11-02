@@ -13,8 +13,8 @@
 #include <hrjson/hrjson.h>
 #include <hrxml/hrxml.h>
 #include <db.h>
-#include "gtk_win.h"
 #include "data_calc_util.h"
+#include "gtk_win.h"
 #include "libsoup/soup.h"
 
 #ifdef __cplusplus
@@ -239,7 +239,7 @@ void read_config()
         result = hrjson_object_get_key(userinfo,"result");
         if(result)
         {
-            value = hrjson_object_get_key(listenser,"dept");
+            value = hrjson_object_get_key(result,"dept");
             if(value)
             {
                 str = hrjson_get_string(value);
@@ -249,7 +249,7 @@ void read_config()
                 }
             }
 
-            value = hrjson_object_get_key(listenser,"user");
+            value = hrjson_object_get_key(result,"user");
             if(value)
             {
                 str = hrjson_get_string(value);
@@ -259,7 +259,7 @@ void read_config()
                 }
             }
 
-            value = hrjson_object_get_key(listenser,"token");
+            value = hrjson_object_get_key(result,"token");
             if(value)
             {
                 str = hrjson_get_string(value);
@@ -269,7 +269,7 @@ void read_config()
                 }
             }
 
-            value = hrjson_object_get_key(listenser,"deptId");
+            value = hrjson_object_get_key(result,"deptId");
             if(value)
             {
                 str = hrjson_get_string(value);
@@ -279,7 +279,7 @@ void read_config()
                 }
             }
 
-            value = hrjson_object_get_key(listenser,"userId");
+            value = hrjson_object_get_key(result,"userId");
             if(value)
             {
                 str = hrjson_get_string(value);
@@ -329,11 +329,11 @@ void write_config()
         hrjson_object_set_key(listenser,"watch",hrjson_create_integer(mg_htxy_global.listenser_watch));
         if(mg_htxy_global.listenser_isync)
         {
-            hrjson_object_set_key(listenser,"watch",hrjson_create_true());
+            hrjson_object_set_key(listenser,"isync",hrjson_create_true());
         }
         else
         {
-            hrjson_object_set_key(listenser,"watch",hrjson_create_false());
+            hrjson_object_set_key(listenser,"isync",hrjson_create_false());
         }
     }
 
@@ -372,8 +372,8 @@ void write_config()
                 hrjson_object_set_key(js,"name",hrjson_create_string(item->name));
                 hrjson_object_set_key(js,"type",hrjson_create_string(item->type));
                 hrjson_object_set_key(js,"url",hrjson_create_string(item->url));
-            }
-            hrjson_array_append(api,js);
+                hrjson_array_append(api,js);
+            }            
         }
     }
 
@@ -384,11 +384,11 @@ void write_config()
         HR_JSON result ;
 
         hrjson_object_set_key(root,"userinfo",userinfo);
-        if(mg_htxy_global.userinfo_status)
-        {
-            hrjson_object_set_key(userinfo,"status",hrjson_create_true());
-        }
-        else
+        //if(mg_htxy_global.userinfo_status)
+        //{
+        //    hrjson_object_set_key(userinfo,"status",hrjson_create_true());
+        //}
+        //else
         {
             hrjson_object_set_key(userinfo,"status",hrjson_create_false());
         }
@@ -474,9 +474,39 @@ char* user_login(const char* usrname , const char* password)
             body = hrjson_object_get_key(root,"body");
             if(body)
             {
+                HR_JSON session ;
+                session = hrjson_object_get_key(body,"session");
+                if(session)
+                {
+                    str = hrjson_get_string(session);
+                    if(str)
+                    {
+                        g_strlcpy(mg_htxy_global.userinfo_token,str,sizeof(mg_htxy_global.userinfo_token));
+                    }
+                }
+
                 organUser = hrjson_object_get_key(body,"organUser");
                 if(organUser)
                 {
+                    value = hrjson_object_get_key(organUser,"userName");
+                    if(value)
+                    {
+                        str = hrjson_get_string(value);
+                        if(str)
+                        {
+                            g_strlcpy(mg_htxy_global.userinfo_user,str,sizeof(mg_htxy_global.userinfo_user));
+                        }
+                    }
+                    value = hrjson_object_get_key(organUser,"organName");
+                    if(value)
+                    {
+                        str = hrjson_get_string(value);
+                        if(str)
+                        {
+                            g_strlcpy(mg_htxy_global.userinfo_dept,str,sizeof(mg_htxy_global.userinfo_dept));
+                        }
+                    }
+
                     value = hrjson_object_get_key(organUser,"organId");
                     if(value)
                     {
@@ -486,7 +516,6 @@ char* user_login(const char* usrname , const char* password)
                             g_strlcpy(mg_htxy_global.organId,str,sizeof(mg_htxy_global.organId));
                             goto end ;
                         }
-                        value = NULL ;
                     }
                 }
                 else
@@ -541,18 +570,159 @@ end :
     return g_strdup(url_body);
 }
 
-gboolean read_roster()
+void user_logout()
+{
+    SoupSession *ss ;
+    SoupMessage *msg;
+    guint status;
+    char url[1024];
+    API_ITEM *api_item ;
+
+    api_item = get_api_by_index(1);
+    g_snprintf(url,sizeof(url),"%s%s",mg_htxy_global.platform_url,api_item->url);
+    ss = soup_session_sync_new();
+    msg = soup_message_new (api_item->type, url);
+    if(msg)
+    {
+        soup_message_headers_append(msg->request_headers,"Content-Type","application/x-www-form-urlencoded");
+        soup_message_headers_append(msg->request_headers,"Accept-Encoding","gzip, deflate");
+    }
+
+    status = soup_session_send_message (ss , msg);
+
+    if(msg)
+    {
+        g_object_unref(G_OBJECT(msg));
+    }
+    if(ss)
+    {
+        g_object_unref(G_OBJECT(ss));
+    }
+}
+
+#define JSON_READ_STR(js,key,var) \
+    do { \
+        HR_JSON value ; \
+        const char*str ; \
+        value = hrjson_object_get_key(js,key); \
+        if(value) \
+        { \
+            str = hrjson_get_string(value); \
+            if(str) \
+            { \
+                g_strlcpy(var,str,sizeof(var)); \
+            } \
+        } \
+    }while(0)
+
+/// 返回的数组为新读到的数据，每项为一个 DB_ORGANS_ITEM
+GArray *read_organs()
 {
     SoupSession *ss ;
     SoupMessage *msg;
     guint status;
     char url[1024];
     HR_JSON root = NULL ;
-    HR_JSON body = NULL ;
-    HR_JSON message = NULL ;
-    HR_JSON organUser= NULL ;
-    HR_JSON value = NULL ;
     API_ITEM *api_item ;
+    GArray *array = NULL ;
+
+    api_item = get_api_by_index(5);
+    ss = soup_session_sync_new();
+    g_snprintf(url,sizeof(url),"%s%s?organId=%s&dataType=2",mg_htxy_global.platform_url,
+        api_item->url,mg_htxy_global.organId);
+    msg = soup_message_new (api_item->type, url);
+    if(msg)
+    {
+        soup_message_headers_append(msg->request_headers,"Content-Type","application/x-www-form-urlencoded");
+        soup_message_headers_append(msg->request_headers,"Accept-Encoding","gzip, deflate");
+        if(mg_htxy_global.session[0] != '\0' )
+        {
+            g_snprintf(url,sizeof(url),"SESSION=%s",mg_htxy_global.session);
+            soup_message_headers_append(msg->request_headers,"Cookie",url);
+        }
+    }
+
+    status = soup_session_send_message (ss , msg);
+    if(status != 200 )
+    {
+        goto end ;
+    }
+
+    array = g_array_new(FALSE,TRUE,sizeof(DB_ORGANS_ITEM));
+    root = hrjson_load_string(msg->response_body->data);
+    if(root)
+    {
+        HR_JSON result ;
+        guint index ;
+        HR_JSON item ;
+        HR_JSON value ;
+        DB_ORGANS_ITEM db ;
+        const char *str ;
+
+        result = hrjson_object_get_key(root,"result");
+        if(result)
+        {
+            hrjson_array_foreach(result, index, item)
+            {
+                memset(&db,0,sizeof(db));
+
+                JSON_READ_STR(item,"enterprise_id",db.enterprise_id);
+                JSON_READ_STR(item,"qymc",db.qymc);
+                JSON_READ_STR(item,"xydm",db.xydm);
+                value = hrjson_object_get_key(item,"jcType");
+                if(value)
+                {
+                    str = hrjson_get_string(value);
+                    if(str)
+                    {
+                        db.jcType = atoi(str);
+                    }
+                }
+                value = hrjson_object_get_key(item,"counts");
+                if(value)
+                {
+                    db.counts = (int)hrjson_get_integer(value);
+                }
+                JSON_READ_STR(item,"_id",db.id);
+                value = hrjson_object_get_key(item,"dataType");
+                if(value)
+                {
+                    db.dataType = (int)hrjson_get_integer(value);
+                }
+                value = hrjson_object_get_key(item,"timestamp");
+                if(value)
+                {
+                    db.timestamp = hrjson_get_integer(value);
+                }
+                JSON_READ_STR(item,"outDate",db.outDate);
+                g_array_append_val(array,db);
+            }
+        }
+    }
+
+end :
+    if(msg)
+    {
+        g_object_unref(G_OBJECT(msg));
+    }
+    if(ss)
+    {
+        g_object_unref(G_OBJECT(ss));
+    }
+
+    return array ;
+}
+
+/// 返回的数组为新读到的数据，每项为一个 DB_PERSON_ITEM
+GArray *read_persons()
+{
+    SoupSession *ss ;
+    SoupMessage *msg;
+    guint status;
+    char url[1024];
+    HR_JSON root = NULL ;
+    API_ITEM *api_item ;
+    GArray *array = NULL ;
 
     api_item = get_api_by_index(5);
     ss = soup_session_sync_new();
@@ -571,7 +741,64 @@ gboolean read_roster()
     }
 
     status = soup_session_send_message (ss , msg);
+    if(status != 200 )
+    {
+        goto end ;
+    }
 
+    array = g_array_new(FALSE,TRUE,sizeof(DB_PERSON_ITEM));
+    root = hrjson_load_string(msg->response_body->data);
+    if(root)
+    {
+        HR_JSON result ;
+        guint index ;
+        HR_JSON item ;
+        HR_JSON value ;
+        DB_PERSON_ITEM db ;
+        const char *str ;
+
+        result = hrjson_object_get_key(root,"result");
+        if(result)
+        {
+            hrjson_array_foreach(result, index, item)
+            {
+                memset(&db,0,sizeof(db));
+
+                JSON_READ_STR(item,"person_id",db.person_id);
+                JSON_READ_STR(item,"xm",db.xm);
+                JSON_READ_STR(item,"sfzhm",db.sfzhm);
+                value = hrjson_object_get_key(item,"jcType");
+                if(value)
+                {
+                    str = hrjson_get_string(value);
+                    if(str)
+                    {
+                        db.jcType = atoi(str);
+                    }
+                }
+                value = hrjson_object_get_key(item,"counts");
+                if(value)
+                {
+                    db.counts = (int)hrjson_get_integer(value);
+                }
+                JSON_READ_STR(item,"_id",db.id);
+                value = hrjson_object_get_key(item,"dataType");
+                if(value)
+                {
+                    db.dataType = (int)hrjson_get_integer(value);
+                }
+                value = hrjson_object_get_key(item,"timestamp");
+                if(value)
+                {
+                    db.timestamp = hrjson_get_integer(value);
+                }
+                JSON_READ_STR(item,"outDate",db.outDate);
+                g_array_append_val(array,db);
+            }
+        }
+    }
+
+end :
     if(msg)
     {
         g_object_unref(G_OBJECT(msg));
@@ -581,7 +808,123 @@ gboolean read_roster()
         g_object_unref(G_OBJECT(ss));
     }
 
-    return TRUE ;
+    return array ;
+}
+
+int db_get_organs_jc_info(DB_ORGANS_ITEM*item,JC_INFO *info)
+{
+    SoupSession *ss ;
+    SoupMessage *msg;
+    guint status;
+    char url[1024];
+    HR_JSON root = NULL ;
+    API_ITEM *api_item ;
+    int rv = -1 ;
+
+    api_item = get_api_by_index(2);
+
+    {//组url
+        GString *str ;
+        gssize pos ;
+        char *p ;
+        const char* type_str = "{type}" ;
+        const char* method_str = "{method}" ;
+
+        str = g_string_new(api_item->url);
+        p = strstr(str->str,type_str);
+        if(p)
+        {
+            pos = GPOINTER_TO_INT(p-str->str);
+            g_string_erase(str,pos,strlen(type_str));
+            g_string_insert(str,pos,"qy");
+        }
+        p = strstr(str->str,method_str);
+        if(p)
+        {
+            pos = GPOINTER_TO_INT(p-str->str);
+            g_string_erase(str,pos,strlen(method_str));
+            if(item->jcType == JC_TYPE_JIANGLI )
+            {
+                g_string_insert(str,pos,"reward");
+            }
+            else
+            {
+                g_string_insert(str,pos,"punishment");
+            }
+        }
+        g_snprintf(url,sizeof(url),"%s%s?organId=%s&qymc=%s",mg_htxy_global.platform_url,
+            str->str,mg_htxy_global.organId,item->qymc);
+        g_string_free(str,TRUE);
+    }
+
+    ss = soup_session_sync_new();
+    msg = soup_message_new (api_item->type, url);
+    if(msg)
+    {
+        soup_message_headers_append(msg->request_headers,"Content-Type","application/x-www-form-urlencoded");
+        soup_message_headers_append(msg->request_headers,"Accept-Encoding","gzip, deflate");
+        if(mg_htxy_global.session[0] != '\0' )
+        {
+            g_snprintf(url,sizeof(url),"SESSION=%s",mg_htxy_global.session);
+            soup_message_headers_append(msg->request_headers,"Cookie",url);
+        }
+    }
+
+    status = soup_session_send_message (ss , msg);
+    if(status != 200 )
+    {
+        goto end ;
+    }
+
+    root = hrjson_load_string(msg->response_body->data);
+    if(root)
+    {
+        HR_JSON result ;
+        HR_JSON info_json;
+        HR_JSON reasons ;
+
+        result = hrjson_object_get_key(root,"result");
+        if(result)
+        {
+            info_json = hrjson_array_get_index(result,0);
+            if(info_json)
+            {
+                guint index ;
+                HR_JSON var ;
+                char str_reason[JC_INFO_REASON_ITEM_LEN];
+                const char *str ;
+
+                JSON_READ_STR(info_json,"jc_type",info->jc_type);
+                JSON_READ_STR(info_json,"measure_name",info->measure_name);
+                JSON_READ_STR(info_json,"jc_basis",info->jc_basis);
+
+                reasons = hrjson_object_get_key(info_json,"reasons");
+                hrjson_array_foreach(reasons, index, var)
+                {
+                    str = hrjson_get_string(var);
+                    if(str)
+                    {
+                        g_strlcpy(str_reason,str,sizeof(str_reason));
+                        g_array_append_val(info->reasons,str_reason);
+                    }
+                }
+            }
+
+            rv = 0 ;
+        }
+    }
+
+end :
+    if(msg)
+    {
+        g_object_unref(G_OBJECT(msg));
+    }
+    if(ss)
+    {
+        g_object_unref(G_OBJECT(ss));
+    }
+
+    return rv ;
 }
 
 /////////////////////////////////////
@@ -645,8 +988,9 @@ static void open_search_db()
 void update_organs_db()
 {
     DBT k={0},d={0};
-    DB_ORGANS_ITEM item ;
-    int i ;
+    DB_ORGANS_ITEM *item ;
+    GArray *array = NULL;
+    guint i ;
 
     if(mg_is_update_ing )
     {
@@ -658,40 +1002,19 @@ void update_organs_db()
 
     if(mg_db_organs != NULL)
     {
-        //TEST
-        for(i=0;i<1000;i++)
+        array = read_organs();
+        if(array)
         {
-            memset(&item,0,sizeof(item));
-            g_snprintf(item.enterprise_id,sizeof(item.enterprise_id),"en%d",i);
-            g_snprintf(item.qymc,sizeof(item.qymc),"%d",i);
-            g_snprintf(item.id,sizeof(item.id),"id%d",i);
-            item.counts  =  i+5 ;
-            item.jcType =  1 ;
-            item.dataType = 2 ;
-            item.is_shishi = rand()%2 ;
-
-            k.data = &item.id;
-            k.size = sizeof(item.id);
-            d.data = &item ;
-            d.size = sizeof(item);
-            mg_db_organs->put(mg_db_organs, NULL,&k, &d,0);
-        }
-        for(i=0;i<1000;i++)
-        {
-            memset(&item,0,sizeof(item));
-            g_snprintf(item.enterprise_id,sizeof(item.enterprise_id),"en%dm",i);
-            g_snprintf(item.qymc,sizeof(item.qymc),"%d",i);
-            g_snprintf(item.id,sizeof(item.id),"id%dm",i);
-            item.counts  =  i+15 ;
-            item.jcType =  2 ;
-            item.dataType = 2 ;
-            item.is_shishi = rand()%2 ;
-
-            k.data = &item.id;
-            k.size = sizeof(item.id);
-            d.data = &item ;
-            d.size = sizeof(item);
-            mg_db_organs->put(mg_db_organs, NULL,&k, &d,0);
+            for(i=0;i<array->len ; i++)
+            {
+                item = &g_array_index(array,DB_ORGANS_ITEM,i);
+                k.data = &item->id;
+                k.size = sizeof(item->id);
+                d.data = item ;
+                d.size = sizeof(DB_ORGANS_ITEM);
+                mg_db_organs->put(mg_db_organs, NULL,&k, &d,0);
+            }
+            g_array_free(array,TRUE);
         }
         mg_db_organs->sync(mg_db_organs,0);
     }
@@ -701,8 +1024,9 @@ void update_organs_db()
 void update_person_db()
 {
     DBT k={0},d={0};
-    DB_PERSON_ITEM item ;
-    int i ;
+    DB_PERSON_ITEM *item ;
+    GArray *array = NULL ;
+    guint i ;
 
     if(mg_is_update_ing )
     {
@@ -714,24 +1038,19 @@ void update_person_db()
 
     if(mg_db_person != NULL)
     {
-        //TEST
-        for(i=10000;i<20000;i++)
+        array = read_persons();
+        if(array)
         {
-            memset(&item,0,sizeof(item));
-            g_snprintf(item.person_id,sizeof(item.person_id),"per%d",i);
-            g_snprintf(item.xm,sizeof(item.xm),"xm%d",i);
-            g_snprintf(item.sfzhm,sizeof(item.sfzhm),"%d",i);
-            g_snprintf(item.id,sizeof(item.id),"id%d",i);
-            item.counts  =  i+5 ;
-            item.jcType =  1 ;
-            item.dataType = 2 ;
-            item.is_shishi = rand()%2 ;
-
-            k.data = &item.id;
-            k.size = sizeof(item.id);
-            d.data = &item ;
-            d.size = sizeof(item);
-            mg_db_person->put(mg_db_person, NULL,&k, &d,0);
+            for(i=0;i<array->len ; i++)
+            {
+                item = &g_array_index(array,DB_PERSON_ITEM,i);
+                k.data = &item->id;
+                k.size = sizeof(item->id);
+                d.data = item ;
+                d.size = sizeof(DB_PERSON_ITEM);
+                mg_db_person->put(mg_db_person, NULL,&k, &d,0);
+            }
+            g_array_free(array,TRUE);
         }
         mg_db_person->sync(mg_db_person,0);
     }
@@ -1028,6 +1347,24 @@ int db_get_person_all(DB_PERSON_ITEM *item_array,int start , int count , gboolea
     return rv_index ;
 }
 
+void db_init_info(JC_INFO *info)
+{
+    memset(info,0,sizeof(JC_INFO));
+    info->reasons = g_array_new(TRUE,TRUE,JC_INFO_REASON_ITEM_LEN);
+    info->sy = g_array_new(TRUE,TRUE,JC_INFO_SY_ITEM_LEN);
+}
+
+void db_clear_info(JC_INFO *info)
+{
+    if(info->reasons)
+    {
+        g_array_free(info->reasons,TRUE);
+    }
+    if(info->sy)
+    {
+        g_array_free(info->sy,TRUE);
+    }
+}
 
 #ifdef __cplusplus
 }

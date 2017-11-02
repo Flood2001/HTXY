@@ -291,6 +291,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if(wParam == 1)
         {
             char new_data[TYPE_URL_MAX_LEN] ;
+            char utf8_data[TYPE_URL_MAX_LEN] ;
             new_data[0] = '\0' ; 
             if ( OpenClipboard(NULL) )
             {
@@ -308,12 +309,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         RUN_GTK_FUNC(widget_update_and_show_info);
                     }
+                    else
+                    {//转成UTF8再查找一次
+                        hrutil_gb2312_to_utf8_safe(new_data,utf8_data,sizeof(utf8_data));
+                        if(info_find_user(utf8_data))
+                        {
+                            RUN_GTK_FUNC(widget_update_and_show_info);
+                        }
+                    }
                 }
             }
         }
         else if(wParam == 2)
         {
-            update_organs_db();
+            update_all_db();
         }
         break ;
     case WM_COMMAND:

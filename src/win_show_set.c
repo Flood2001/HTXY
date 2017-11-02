@@ -26,6 +26,13 @@ extern "C" {
 ///
 ///////////////////////////////////////////////////
 
+/// 列表树
+enum {
+    COL_POINTER ,  ///< API_ITEM *
+    COL_INDEX ,
+
+    COL_NUMS ,
+};
 //对象的私有数据
 struct _c_win_show_set_private {
     gboolean m_is_login ;
@@ -36,6 +43,9 @@ struct _c_win_show_set_private {
     GtkWidget *m_en_usrname ;
     GtkWidget *m_en_password ;
     GtkWidget *m_label_error_str ;
+    //登录成功
+    GtkWidget *m_en_dept ;
+    GtkWidget *m_en_user ;
 
     //应用
     GtkWidget *m_en_url ;
@@ -45,6 +55,10 @@ struct _c_win_show_set_private {
     GtkWidget *m_ck_faren ;
     GtkWidget *m_ck_ziranren ;
     GtkWidget *m_en_delay ;
+
+    //接口管理
+    GtkTreeView  *m_treeView ;          ///< 接口树
+    GtkTreeStore *m_treeStore ;
 };
 
 #define  WIN_SHOW_SET_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj),WIN_SHOW_SET_TYPE,Cwin_show_set_private))
@@ -112,10 +126,32 @@ static void Cwin_show_set_get_property(GObject *object,
 
 static void slog_bt_update_utl(GtkButton *button, gpointer   user_data) ;
 void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data) ;
+void slog_bt_clicked_update_cfg(GtkButton *button, gpointer   user_data) ;
 static gboolean slog_main_book_change_page(GtkNotebook *notebook,
           gint         arg1, gpointer     user_data);
 static void slog_bt_login(GtkButton *button, gpointer   user_data) ;
 static void slog_bt_relogin(GtkButton *button, gpointer   user_data) ;
+
+static void no_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void name_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void url_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
+static void type_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data);
 //////////////////////////////////////////////////
 ///
 ///  类基本函数实现
@@ -210,9 +246,22 @@ static void update_date(Cwin_show_set *window)
 {
     char buff[256];
 
+    // 用户
+    if(window->prv->m_is_login)
+    {
+        gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_user),mg_htxy_global.userinfo_user);
+        gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_dept),mg_htxy_global.userinfo_dept);
+    }
+
+    // 系统参数
     gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_url),mg_htxy_global.platform_url);
     gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_web),mg_htxy_global.platform_web);
     gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_app_name),mg_htxy_global.platform_name);
+
+    //通信
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(window->prv->m_ck_auto_sync),mg_htxy_global.listenser_isync);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(window->prv->m_ck_faren),mg_htxy_global.is_use_organs);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(window->prv->m_ck_ziranren),mg_htxy_global.is_use_person);
     g_snprintf(buff,sizeof(buff),"%d",mg_htxy_global.listenser_delay);
     gtk_entry_set_text(GTK_ENTRY(window->prv->m_en_delay),buff);
 }
@@ -301,6 +350,7 @@ static void switch_user_view(Cwin_show_set*window, int is_login )
         label = gtk_label_new(get_const_str(105));
         gtk_label_set_markup(GTK_LABEL(label),get_const_str(105));
         entry = gtk_entry_new();
+        window->prv->m_en_user = entry ;
         g_snprintf(path,sizeof(path),"%simage/usr.png",mg_htxy_global.exe_dir);
         gtk_entry_set_text(GTK_ENTRY(entry),mg_htxy_global.userinfo_dept);
         bf = gdk_pixbuf_new_from_file(path,NULL);
@@ -319,6 +369,7 @@ static void switch_user_view(Cwin_show_set*window, int is_login )
         label = gtk_label_new(get_const_str(106));
         gtk_label_set_markup(GTK_LABEL(label),get_const_str(106));
         entry = gtk_entry_new();
+        window->prv->m_en_dept = entry ;
         g_snprintf(path,sizeof(path),"%simage/password.png",mg_htxy_global.exe_dir);
         gtk_entry_set_text(GTK_ENTRY(entry),mg_htxy_global.userinfo_user);
         bf = gdk_pixbuf_new_from_file(path,NULL);
@@ -370,14 +421,27 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
     GtkWidget *sep ;
     GdkPixbuf *bf; 
     GtkWidget *hbox ;
+    GtkWidget *vbox ;
     int line = 0 ;
     char path[256];
+    GtkTreeViewColumn *column ;
+    GtkCellRenderer *renderer ;
 
     window->prv = WIN_SHOW_SET_GET_PRIVATE(window);
     window->prv->m_is_login = -1 ;
 
+    /// 修改配置BT
+    label = gtk_label_new(get_const_str(97));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(97));
+    bt = gtk_button_new_with_label("");
+    gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
+    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_clicked_update_cfg),window);
+    vbox = gtk_vbox_new(FALSE,0);
+    gtk_box_pack_start(GTK_BOX(vbox),bt,FALSE,FALSE,0);
+
     /// 主NoteBook
     main_notebook = gtk_notebook_new();
+    gtk_box_pack_start(GTK_BOX(vbox),main_notebook,TRUE,TRUE,0);
     sys_table = GTK_WIDGET(Cgtk_grid_table_new());
     port_table = GTK_WIDGET(Cgtk_grid_table_new());
 
@@ -391,7 +455,6 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
     Cfunc_label_set_image_and_text((Cfunc_label*)label,path,get_const_str(82),24,24);
     Cfunc_label_markup_text((Cfunc_label*)label,get_const_str(82));
     gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook),port_table,label);
-
 
     /// 系统设置
     user_table = GTK_WIDGET(Cgtk_grid_table_new());
@@ -573,9 +636,75 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
     gtk_label_set_markup(GTK_LABEL(label),get_const_str(93));
     gtk_box_pack_start(GTK_BOX(hbox),GTK_WIDGET(label),FALSE,FALSE,0);
 
+    // 接口管理
+    window->prv->m_treeStore = gtk_tree_store_new(COL_NUMS, G_TYPE_POINTER,G_TYPE_INT);
+    gtk_tree_store_clear(window->prv->m_treeStore);
+
+#define NEW_CLOUMN(string_id,width) \
+    do { \
+        column = gtk_tree_view_column_new(); \
+        label = GTK_WIDGET(Cfunc_label_new()); \
+        Cfunc_label_markup_text((Cfunc_label*)label,(char*)get_const_str(string_id)); \
+        gtk_tree_view_column_set_sizing(column,GTK_TREE_VIEW_COLUMN_FIXED);\
+        gtk_tree_view_column_set_widget(column,GTK_WIDGET(label)); \
+        gtk_tree_view_column_set_resizable(column,FALSE);\
+        gtk_tree_view_column_set_fixed_width(column,width); \
+        gtk_tree_view_append_column(GTK_TREE_VIEW(window->prv->m_treeView), column); \
+    }while(0)
+
+    // 树
+    window->prv->m_treeView = GTK_TREE_VIEW(gtk_tree_view_new());
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(port_table),GTK_WIDGET(window->prv->m_treeView),
+        0,0,1,1, TRUE, TRUE, TRUE,TRUE);
+    gtk_tree_view_set_model(GTK_TREE_VIEW(window->prv->m_treeView),GTK_TREE_MODEL(window->prv->m_treeStore));
+    gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(window->prv->m_treeView), TRUE);
+    gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(window->prv->m_treeView), GTK_TREE_VIEW_GRID_LINES_HORIZONTAL);
+    gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(window->prv->m_treeView)), GTK_SELECTION_NONE);
+
+    NEW_CLOUMN(121,50) ;
+    renderer = gtk_cell_renderer_text_new(); 
+    gtk_cell_renderer_set_alignment(renderer,1.0f,0.5f);
+    gtk_tree_view_column_pack_start(column,renderer,TRUE);
+    gtk_tree_view_column_set_cell_data_func(column, renderer, no_cell_data_func, window, NULL);
+
+    NEW_CLOUMN(122,160) ;
+    renderer = gtk_cell_renderer_text_new(); 
+    gtk_cell_renderer_set_alignment(renderer,1.0f,0.5f);
+    gtk_tree_view_column_pack_start(column,renderer,TRUE);
+    gtk_tree_view_column_set_cell_data_func(column, renderer, name_cell_data_func, window, NULL);
+
+    NEW_CLOUMN(123,350) ;
+    renderer = gtk_cell_renderer_text_new(); 
+    gtk_cell_renderer_set_alignment(renderer,1.0f,0.5f);
+    gtk_tree_view_column_pack_start(column,renderer,TRUE);
+    gtk_tree_view_column_set_cell_data_func(column, renderer, url_cell_data_func, window, NULL);
+
+    NEW_CLOUMN(124,100) ;
+    renderer = gtk_cell_renderer_text_new(); 
+    gtk_cell_renderer_set_alignment(renderer,1.0f,0.5f);
+    gtk_tree_view_column_pack_start(column,renderer,TRUE);
+    gtk_tree_view_column_set_cell_data_func(column, renderer, type_cell_data_func, window, NULL);
+
+    //初始化树数据
+    {
+        GtkTreeIter iter ;
+        int i;
+
+        for(i=0;i< TYPE_URL_MAX_API_COUNT ; i++)
+        {
+            if(mg_htxy_global.api[i].name[0] != '\0' )
+            {
+                gtk_tree_store_append(window->prv->m_treeStore, &iter, NULL);
+                gtk_tree_store_set(window->prv->m_treeStore, &iter, 
+                    COL_POINTER, &mg_htxy_global.api[i],
+                    COL_INDEX , i ,
+                    -1 );
+            }
+        }
+    }
 
     gtk_widget_set_usize(GTK_WIDGET(window), 700,600);
-    Cwin_login_set_child((Cwin_login*)window , GTK_WIDGET(main_notebook));
+    Cwin_login_set_child((Cwin_login*)window , GTK_WIDGET(vbox));
     update_date(window);
     gtk_widget_show_all(GTK_WIDGET(window));
 }
@@ -658,7 +787,47 @@ static void slog_bt_update_utl(GtkButton *button, gpointer   user_data)
 
 static void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data)
 {
+    if(mg_htxy_global.organId[0] == '\0' )
+    {
+        gtk_show_msg_dlg(141,142);
+        return ;
+    }
     update_all_db() ;
+}
+
+static void slog_bt_clicked_update_cfg(GtkButton *button, gpointer   user_data)
+{
+    Cwin_show_set *window = (Cwin_show_set*)user_data ;
+    const char *text ;
+    // 系统参数
+    text = gtk_entry_get_text(GTK_ENTRY(window->prv->m_en_url));
+    if(text)
+    {
+        g_strlcpy(mg_htxy_global.platform_url,text,sizeof(mg_htxy_global.platform_url));
+    }
+    text = gtk_entry_get_text(GTK_ENTRY(window->prv->m_en_web));
+    if(text)
+    {
+        g_strlcpy(mg_htxy_global.platform_web,text,sizeof(mg_htxy_global.platform_web));
+    }
+    text = gtk_entry_get_text(GTK_ENTRY(window->prv->m_en_app_name));
+    if(text)
+    {
+        g_strlcpy(mg_htxy_global.platform_name,text,sizeof(mg_htxy_global.platform_name));
+    }
+
+    //通信
+    mg_htxy_global.listenser_isync = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(window->prv->m_ck_auto_sync));
+    mg_htxy_global.is_use_organs = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(window->prv->m_ck_faren));
+    mg_htxy_global.is_use_person = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(window->prv->m_ck_ziranren));
+    text = gtk_entry_get_text(GTK_ENTRY(window->prv->m_en_delay));
+    if(text)
+    {
+        mg_htxy_global.listenser_delay = atoi(text);
+    }
+
+    //
+    write_config();
 }
 
 static gboolean slog_main_book_change_page(GtkNotebook *notebook,
@@ -692,6 +861,7 @@ static void slog_bt_login(GtkButton *button, gpointer   user_data)
     {
         mg_htxy_global.userinfo_status = TRUE ;
         switch_user_view(window,1);
+        update_date(window);
     }
 }
 
@@ -700,8 +870,74 @@ static void slog_bt_relogin(GtkButton *button, gpointer   user_data)
     Cwin_show_set *window = (Cwin_show_set*)user_data ;
 
     mg_htxy_global.userinfo_status = FALSE ;
+    user_logout();
     switch_user_view(window,0);
 }
+
+static void no_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_set *window = (Cwin_show_set*)user_data ;
+
+    gint no ;
+    char text[1024];
+    gtk_tree_model_get(model, iter, COL_INDEX , &no,  -1);
+    g_snprintf(text,sizeof(text),get_const_str(131),no+1);
+    g_object_set(renderer, "text", text, NULL);
+    g_object_set(renderer, "markup", text, NULL);
+}
+
+static void name_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_set *window = (Cwin_show_set*)user_data ;
+    API_ITEM *item ;
+    char text[1024];
+
+    gtk_tree_model_get(model, iter, COL_POINTER, &item,  -1);
+    g_snprintf(text,sizeof(text),get_const_str(132),item->name);
+    g_object_set(renderer, "text", text, NULL);
+    g_object_set(renderer, "markup", text, NULL);
+}
+
+static void url_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_set *window = (Cwin_show_set*)user_data ;
+    API_ITEM *item ;
+    char text[1024];
+
+    gtk_tree_model_get(model, iter, COL_POINTER, &item,  -1);
+    g_snprintf(text,sizeof(text),get_const_str(133),item->url);
+    g_object_set(renderer, "text", text, NULL);
+    g_object_set(renderer, "markup", text, NULL);
+}
+
+static void type_cell_data_func (GtkTreeViewColumn *col,
+                    GtkCellRenderer   *renderer,
+                    GtkTreeModel      *model,
+                    GtkTreeIter       *iter,
+                    gpointer           user_data)
+{
+    Cwin_show_set *window = (Cwin_show_set*)user_data ;
+    API_ITEM *item ;
+    char text[1024];
+
+    gtk_tree_model_get(model, iter, COL_POINTER, &item,  -1);
+    g_snprintf(text,sizeof(text),get_const_str(134),item->type);
+    g_object_set(renderer, "text", text, NULL);
+    g_object_set(renderer, "markup", text, NULL);
+}
+
 
 #ifdef __cplusplus
 }

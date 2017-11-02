@@ -78,6 +78,7 @@
     <ITEM> <id>94</id> <str>&lt;span foreground='black' &gt; 数据类型：&lt;/span&gt;</str> </ITEM>
     <ITEM> <id>95</id> <str>&lt;span foreground='black' &gt; 法人 &lt;/span&gt;</str> </ITEM>
     <ITEM> <id>96</id> <str>&lt;span foreground='black' &gt; 自然人 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>97</id> <str>&lt;span foreground='white' bgcolor='#00C000' &gt; 更新配置 &lt;/span&gt;</str> </ITEM>
         <!-- 配置界面 : 用户 -->
     <ITEM> <id>101</id> <str>  账号：</str> </ITEM>
     <ITEM> <id>102</id> <str>  密码：</str> </ITEM>
@@ -86,4 +87,35 @@
     <ITEM> <id>105</id> <str>  单位：</str> </ITEM>
     <ITEM> <id>106</id> <str>  用户：</str> </ITEM>
     <ITEM> <id>107</id> <str>&lt;span foreground='white' bgcolor='blue' font_desc='12' &gt; 切换用户 &lt;/span&gt;</str> </ITEM>
+        <!-- 配置界面 : 接口 -->
+    <ITEM> <id>121</id> <str>&lt;span foreground='blue' weight='bold' font_desc='14'&gt;序号&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>122</id> <str>&lt;span foreground='blue' weight='bold' font_desc='14'&gt; 接口名称 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>123</id> <str>&lt;span foreground='blue' weight='bold' font_desc='14'&gt; 接口地址 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>124</id> <str>&lt;span foreground='blue' weight='bold' font_desc='14'&gt;请求方式&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>131</id> <str>&lt;span foreground='black' font_desc='13'&gt; %d &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>132</id> <str>&lt;span foreground='black' font_desc='13'&gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>133</id> <str>&lt;span foreground='black' font_desc='13'&gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>134</id> <str>&lt;span foreground='black' font_desc='13'&gt; %s &lt;/span&gt;</str> </ITEM>
+        <!-- 配置界面 : 提示 -->
+    <ITEM> <id>141</id> <str>&lt;span weight='bold' font_desc='14'&gt; 更新失败 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>142</id> <str>&lt;span foreground='black' font_desc='13'&gt; 用户尚未登录！&lt;/span&gt;</str> </ITEM>
+
+    <!-- 实施界面 -->
+    <ITEM> <id>150</id> <str>实施惩戒</str> </ITEM>
+    <ITEM> <id>151</id> <str>&lt;span foreground='black' font_desc='13'&gt; 法人名称： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>152</id> <str>&lt;span foreground='black' font_desc='13'&gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>153</id> <str>&lt;span foreground='black' font_desc='13'&gt; 统一社会信用代码： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>154</id> <str>&lt;span foreground='black' font_desc='13'&gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>155</id> <str>&lt;span foreground='black' font_desc='13'&gt; 措施内容： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>156</id> <str>&lt;span foreground='black' font_desc='13'&gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>157</id> <str>&lt;span foreground='black' font_desc='13'&gt; 认定依据： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>158</id> <str>&lt;span foreground='black' font_desc='13'&gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>159</id> <str>&lt;span foreground='black' font_desc='13'&gt; 认定事由： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>160</id> <str>&lt;span foreground='black' font_desc='13'&gt; %d 、 %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>161</id> <str>&lt;span foreground='black' font_desc='13'&gt; 惩戒时间： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>162</id> <str>选择时间</str> </ITEM>
+    <ITEM> <id>163</id> <str>&lt;span foreground='black' font_desc='13'&gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>164</id> <str>&lt;span foreground='black' font_desc='13'&gt; 惩戒说明： &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>165</id> <str>&lt;span foreground='white' bgcolor='#00C000' &gt; 确定反馈 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>166</id> <str>&lt;span foreground='black' bgcolor='#D0D0D0' &gt; 取消 &lt;/span&gt;</str> </ITEM>
 </CONST_STRING_TABLE>

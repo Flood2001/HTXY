@@ -12,6 +12,7 @@ void write_config();
 
 /// 成功返回NULL，否则返回失败原因
 char* user_login(const char* usrname , const char* password);
+void user_logout();
 gboolean info_find_user(const char* usrname);
 void read_url();
 
@@ -57,6 +58,19 @@ typedef struct tag_db_person_item {
     char cdate[128] ;   ///< c
 } DB_PERSON_ITEM ;
 
+/// 奖惩信息
+typedef struct tag_jc_info {
+#define JC_INFO_REASON_ITEM_LEN  128
+#define JC_INFO_SY_ITEM_LEN  128
+    GArray *reasons ;    ///< 认定事由   ///< 每项为一个 char[JC_INFO_REASON_ITEM_LEN]
+    char jc_type[128] ; ///< 惩罚措施
+    GArray *sy ;         ///< sy    每项为一个 char[JC_INFO_SY_ITEM_LEN]
+    char measure_name[128] ;
+    char jc_basis[128] ;
+} JC_INFO ;
+typedef char JC_INFO_REASON_ITEM_TYPE[JC_INFO_REASON_ITEM_LEN];
+typedef char JC_INFO_SY_ITEM_TYPE[JC_INFO_SY_ITEM_LEN];
+
 void update_all_db();
 void update_organs_db();
 void update_person_db();
@@ -71,6 +85,9 @@ void stat_db();
 /// 返回值表示实际读取到的条数
 int db_get_organs_all(DB_ORGANS_ITEM *item_array,int start , int count , gboolean is_shishi);
 int db_get_person_all(DB_PERSON_ITEM *item_array,int start , int count , gboolean is_shishi);
+int db_get_organs_jc_info(DB_ORGANS_ITEM*item,JC_INFO *info);
+void db_init_info(JC_INFO *info);
+void db_clear_info(JC_INFO *info);
 
 #ifdef __cplusplus
 }

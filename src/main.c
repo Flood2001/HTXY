@@ -15,14 +15,15 @@
 #include <windows.h>
 #endif
 
+#include "data_calc_util.h"
 #include "windows_sys.h"
 #include "win_login.h"
 #include "win_main_frame.h"
 #include "win_show_info.h"
 #include "win_show_set.h"
 #include "win_show_list.h"
+#include "win_show_shishi.h"
 #include "gtk_win.h"
-#include "data_calc_util.h"
 
 #ifdef __cplusplus
 extern "C"{ 
@@ -70,7 +71,7 @@ void exit_process()
 
 static void hide_all();
 #define GLOBAL_WINDOW(name) \
-static GtkWidget *mg_##name##Widget ; \
+GtkWidget *mg_##name##Widget ; \
 gboolean widget_show_##name() \
 { \
   hide_all(); \
@@ -107,6 +108,7 @@ GLOBAL_WINDOW(init) ///< 初始化窗口
 GLOBAL_WINDOW(set) ///< 设置窗口
 GLOBAL_WINDOW(info) ///< 设置窗口
 GLOBAL_WINDOW(list) ///< 列表窗口
+GLOBAL_WINDOW(shishi) ///< 实施窗口
 
 static void hide_all()
 {
@@ -114,6 +116,7 @@ static void hide_all()
     widget_hide_set();
     widget_hide_info();
     widget_hide_list();
+    widget_hide_shishi();
 }
 
 void gtk_show_msg_dlg(int title_string_id,int context_string_id)
@@ -132,6 +135,7 @@ void gtk_show_msg_dlg(int title_string_id,int context_string_id)
 static Cwin_main_frame *mg_frame_window ; ///< Info
 static Cwin_show_info *mg_info_window ; ///< Info
 static Cwin_show_list *mg_list_window ; ///< Info
+static Cwin_show_shishi *mg_shishi_window ; ///< Info
 
 gboolean widget_update_init()
 {
@@ -158,6 +162,16 @@ gboolean widget_show_list_window_with_type(int type)
     return FALSE ;
 }
 
+gboolean widget_show_shishi_organs(DB_ORGANS_ITEM *item , JC_INFO *info)
+{
+    if(mg_shishi_window)
+    {
+        widget_show_shishi();
+        Cwin_show_shishi_set_organs_data(mg_shishi_window,item,info);
+    }
+    return FALSE ;
+}
+
 //////////////////
 T_LANGUAGE_STRING sc_setting = {"设置","Settting"};
 
@@ -168,9 +182,10 @@ HTXY_GLOBAL mg_htxy_global = //{0};
 
 static void init_global()
 {
+    memset(&mg_htxy_global,0,sizeof(HTXY_GLOBAL));
     hrutil_get_exe_dir(mg_htxy_global.exe_dir);
     mg_htxy_global.listenser_watch = 500 ;
-    mg_htxy_global.listenser_delay = 1800000 ;
+    mg_htxy_global.listenser_delay = 30 ;
 }
 
 
@@ -252,6 +267,14 @@ int main(int argc,char **argv)
     Cwin_login_set_parent_window(WIN_LOGIN(child), GTK_WINDOW(window));
     gtk_window_set_title(GTK_WINDOW(window), mg_htxy_global.platform_name);
     mg_listWidget  = window ;
+
+    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    child = GTK_WIDGET(Cwin_show_shishi_new());
+    mg_shishi_window = (Cwin_show_shishi*)child;
+    gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET(child));
+    Cwin_login_set_parent_window(WIN_LOGIN(child), GTK_WINDOW(window));
+    Cwin_login_set_title(WIN_LOGIN(child), get_const_str(150));
+    mg_shishiWidget  = window ;
 
     gtk_main ();
 

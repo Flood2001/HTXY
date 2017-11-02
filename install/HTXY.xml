@@ -90,6 +90,15 @@
                         <distributionFile>
                             <origin>${Rpath}/hrlib\win32\bin\hrsvg.dll</origin>
                         </distributionFile>
+                        <distributionFile>
+                            <origin>${Rpath}/hrlib\win32\bin\hrxml.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>${Rpath}/hrlib\win32\bin\msvcp100.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>${Rpath}/hrlib\win32\bin\msvcr100.dll</origin>
+                        </distributionFile>
                     </distributionFileList>
                     <shortcutList>
                         <shortcut>

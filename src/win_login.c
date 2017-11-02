@@ -32,6 +32,9 @@ struct _c_win_login_private {
     GtkWidget *label_title;
     GtkWidget *m_bt_help;
     GtkWindow *parent_window ;
+
+    // 
+    Cwin_login *m_min_window ;
 };
 
 #define  WIN_LOGIN_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj),WIN_LOGIN_TYPE,Cwin_login_private))
@@ -354,6 +357,23 @@ void Cwin_login_clean_child(Cwin_login *window)
     }
 }
 
+void Cwin_login_set_min_window(Cwin_login *window,Cwin_login *min)
+{
+    window->prv->m_min_window = min ;
+}
+
+void Cwin_login_do_min_window(Cwin_login *window)
+{
+    if(window->prv->parent_window)
+    {
+        gtk_widget_hide(GTK_WIDGET(window->prv->parent_window));
+    }
+    if(window->prv->m_min_window)
+    {
+        gtk_widget_show_all(GTK_WIDGET(window->prv->m_min_window));
+    }
+}
+
 //////////////////////////////////////////////////
 ///
 ///  私有函数实现
@@ -364,10 +384,7 @@ void slog_bt_min_clicked(GtkButton *button, gpointer   user_data)
 {
     Cwin_login *window = (Cwin_login*)user_data ;
 
-    if(window->prv->parent_window)
-    {
-        gtk_widget_hide(GTK_WIDGET(window->prv->parent_window));
-    }
+    Cwin_login_do_min_window(window);
 }
 
 void slog_bt_clicked_help(GtkButton *button, gpointer   user_data) 

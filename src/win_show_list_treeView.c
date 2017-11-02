@@ -32,8 +32,7 @@ enum {
 };
 /// ÁÐ±íÊ÷
 enum {
-    COL_POINTER ,  ///< NMCFG_PLUGIN_TMPT_MANAGER_ITEM_T * 
-    COL_TYPE ,     ///< COL_TYPE_ORGANS ,COL_TYPE_PERSON
+    COL_POINTER ,  ///< API_ITEM *
     COL_INDEX ,
 
     COL_NUMS ,
@@ -304,7 +303,7 @@ static void Cwin_show_list_clean_table(Cwin_show_list *window)
     Cwin_login_set_child((Cwin_login*)window , GTK_WIDGET(window->prv->m_table));
     window->prv->m_table_curr_line = 0 ;
 
-    window->prv->m_treeStore = gtk_tree_store_new(COL_NUMS, G_TYPE_POINTER,G_TYPE_INT,G_TYPE_INT);
+    window->prv->m_treeStore = gtk_tree_store_new(COL_NUMS, G_TYPE_POINTER,G_TYPE_INT);
     gtk_tree_store_clear(window->prv->m_treeStore);
 
     // Ê÷

@@ -2,6 +2,7 @@
 #define _HRSOFT_GTK_WIN_H_2017_10_15_
 
 #include <gtk/gtk.h>
+#include "data_calc_util.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -57,7 +58,15 @@ typedef struct tag_htxy_global {
     char userinfo_token[TYPE_URL_MAX_LEN] ;
     char userinfo_deptId[TYPE_URL_MAX_LEN] ;
     char userinfo_userId[TYPE_URL_MAX_LEN] ;
+
 } HTXY_GLOBAL ;
+
+/// ´°Ìו
+extern GtkWidget *mg_initWidget ;
+extern GtkWidget *mg_setWidget ;
+extern GtkWidget *mg_infoWidget ;
+extern GtkWidget *mg_listWidget ;
+extern GtkWidget *mg_shishiWidget ;
 
 void exit_process();
 gboolean widget_update_init();
@@ -72,6 +81,7 @@ gboolean widget_hide_info();
 gboolean widget_switch_info();
 gboolean widget_update_and_show_info();
 gboolean widget_show_list_window_with_type(int type);
+gboolean widget_show_shishi_organs(DB_ORGANS_ITEM *item , JC_INFO *info);
 void gtk_show_msg_dlg(int title_string_id,int context_string_id);
 
 extern HTXY_GLOBAL mg_htxy_global ;

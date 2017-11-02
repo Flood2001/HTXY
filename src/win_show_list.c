@@ -452,12 +452,15 @@ static void Cwin_show_list_show_organs_all(Cwin_show_list *window)
     }
 }
 
+static Cwin_show_list *mg_this_window ;
 //对象构造函数
 static void Cwin_show_list_inst_init(Cwin_show_list *window)
 {
     window->prv = WIN_SHOW_LIST_GET_PRIVATE(window);
+    mg_this_window = (Cwin_show_list*)window;
 
     gtk_widget_set_usize(GTK_WIDGET(window), 800,580);
+    Cwin_login_set_min_window((Cwin_login*)window,(Cwin_login *)mg_initWidget); ///< 设置当最小化时显示的窗体
 }
 
 //对象析构函数
@@ -595,6 +598,13 @@ void Cwin_show_list_set_show_type(Cwin_show_list *window ,int type)
 
 static void slog_bt_organs_shishi(GtkButton *button, gpointer user_data) 
 {
+    DB_ORGANS_ITEM *item = (DB_ORGANS_ITEM *)user_data ;
+    JC_INFO info ;
+
+    db_init_info(&info);
+    db_get_organs_jc_info(item,&info);
+    widget_show_shishi_organs(item , &info);
+    db_clear_info(&info);
 }
 static void slog_bt_organs_zancun(GtkButton *button, gpointer user_data) 
 {
@@ -603,6 +613,7 @@ static void slog_bt_organs_zancun(GtkButton *button, gpointer user_data)
     item->is_shishi = TRUE ;
     update_organs_item(item);
     gtk_show_msg_dlg(49,50);
+    Cwin_show_list_set_show_curr_page(mg_this_window);
 }
 static void slog_bt_organs_huanyuan(GtkButton *button, gpointer user_data) 
 {
@@ -611,6 +622,7 @@ static void slog_bt_organs_huanyuan(GtkButton *button, gpointer user_data)
     item->is_shishi = FALSE ;
     update_organs_item(item);
     gtk_show_msg_dlg(47,48);
+    Cwin_show_list_set_show_curr_page(mg_this_window);
 }
 static void slog_bt_organs_shanchu(GtkButton *button, gpointer user_data) 
 {
@@ -618,6 +630,7 @@ static void slog_bt_organs_shanchu(GtkButton *button, gpointer user_data)
 
     delete_organs_item(item);
     gtk_show_msg_dlg(51,52);
+    Cwin_show_list_set_show_curr_page(mg_this_window);
 }
 
 static void slog_bt_person_shishi(GtkButton *button, gpointer user_data) 
@@ -631,6 +644,7 @@ static void slog_bt_person_zancun(GtkButton *button, gpointer user_data)
     item->is_shishi = TRUE ;
     update_person_db(item);
     gtk_show_msg_dlg(49,50);
+    Cwin_show_list_set_show_curr_page(mg_this_window);
 }
 static void slog_bt_person_huanyuan(GtkButton *button, gpointer user_data) 
 {
@@ -639,6 +653,7 @@ static void slog_bt_person_huanyuan(GtkButton *button, gpointer user_data)
     item->is_shishi = FALSE ;
     update_person_db(item);
     gtk_show_msg_dlg(47,48);
+    Cwin_show_list_set_show_curr_page(mg_this_window);
 }
 static void slog_bt_person_shanchu(GtkButton *button, gpointer user_data) 
 {
@@ -646,6 +661,7 @@ static void slog_bt_person_shanchu(GtkButton *button, gpointer user_data)
 
     delete_person_item(item);
     gtk_show_msg_dlg(51,52);
+    Cwin_show_list_set_show_curr_page(mg_this_window);
 }
 
 static void slog_bt_first(GtkButton *button, gpointer user_data) 

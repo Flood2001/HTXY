@@ -42,6 +42,8 @@ void Cwin_login_set_title(Cwin_login *window , const char* title);
 void Cwin_login_set_help_info(Cwin_login *window,const char* help_info);
 void Cwin_login_set_child(Cwin_login *window , GtkWidget *child);
 void Cwin_login_clean_child(Cwin_login *window);
+void Cwin_login_set_min_window(Cwin_login *window,Cwin_login *min); ///< 设置当最小化时显示的窗体
+void Cwin_login_do_min_window(Cwin_login *window);
 
 #ifdef __cplusplus
 }
