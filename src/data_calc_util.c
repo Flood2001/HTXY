@@ -891,12 +891,20 @@ int db_get_organs_jc_info(DB_ORGANS_ITEM*item,JC_INFO *info)
             {
                 guint index ;
                 HR_JSON var ;
+                HR_JSON recordReason;
                 char str_reason[JC_INFO_REASON_ITEM_LEN];
                 const char *str ;
 
                 JSON_READ_STR(info_json,"jc_type",info->jc_type);
                 JSON_READ_STR(info_json,"measure_name",info->measure_name);
                 JSON_READ_STR(info_json,"jc_basis",info->jc_basis);
+                JSON_READ_STR(info_json,"template_id",info->temp_id);
+                JSON_READ_STR(info_json,"zt_id",info->zt_id);
+                recordReason = hrjson_object_get_key(info_json,"recordReasons");
+                if(recordReason)
+                {
+                    info->recordReason = hrjson_clone(recordReason);
+                }
 
                 reasons = hrjson_object_get_key(info_json,"reasons");
                 hrjson_array_foreach(reasons, index, var)
@@ -926,6 +934,99 @@ end :
 
     return rv ;
 }
+
+int db_shishi_organs(JC_INFO *info)
+{
+    SoupSession *ss ;
+    SoupMessage *msg;
+    guint status;
+    char url[1024];
+    HR_JSON root = NULL ;
+    API_ITEM *api_item ;
+    int rv = -1 ;
+
+    api_item = get_api_by_index(4);
+
+    {//×éurl
+        GString *str ;
+        gssize pos ;
+        char *p ;
+        const char* type_str = "{type}" ;
+
+        str = g_string_new(api_item->url);
+        p = strstr(str->str,type_str);
+        if(p)
+        {
+            pos = GPOINTER_TO_INT(p-str->str);
+            g_string_erase(str,pos,strlen(type_str));
+            g_string_insert(str,pos,"qy");
+        }
+        g_snprintf(url,sizeof(url),"%s%s",mg_htxy_global.platform_url, str->str);
+        g_string_free(str,TRUE);
+    }
+
+    ss = soup_session_sync_new();
+    msg = soup_message_new (api_item->type, url);
+    if(msg)
+    {
+        soup_message_headers_append(msg->request_headers,"Content-Type","application/json");
+        soup_message_headers_append(msg->request_headers,"Accept-Encoding","gzip, deflate");
+        if(mg_htxy_global.session[0] != '\0' )
+        {
+            g_snprintf(url,sizeof(url),"SESSION=%s",mg_htxy_global.session);
+            soup_message_headers_append(msg->request_headers,"Cookie",url);
+        }
+
+        //×éBodyµÄjson
+        root = hrjson_create_object();
+        if(root)
+        {
+            HR_JSON rs ;
+            char *str ;
+
+            hrjson_object_set_key(root,"dataType",hrjson_create_integer(2));
+            hrjson_object_set_key(root,"jcDate",hrjson_create_string(info->jcDate));
+            hrjson_object_set_key(root,"jcDesc",hrjson_create_string(info->jcDesc));
+            hrjson_object_set_key(root,"jcTemplateId",hrjson_create_string(info->temp_id));
+            hrjson_object_set_key(root,"organId",hrjson_create_string(mg_htxy_global.organId));
+            hrjson_object_set_key(root,"zt_id",hrjson_create_string(info->zt_id));
+            rs = hrjson_clone(info->recordReason);
+            hrjson_object_set_key(root,"reasons",rs);
+            str = hrjson_write_string(root);
+            if(str)
+            {
+                soup_message_body_append(msg->request_body ,SOUP_MEMORY_COPY,str,strlen(str));
+                hrjson_free_write_string(str);
+            }
+            hrjson_destroy(root);
+        }
+    }
+
+    status = soup_session_send_message (ss , msg);
+    if(status != 200 )
+    {
+        goto end ;
+    }
+
+    root = hrjson_load_string(msg->response_body->data);
+    if(root)
+    {
+        rv = 0 ;
+    }
+
+end :
+    if(msg)
+    {
+        g_object_unref(G_OBJECT(msg));
+    }
+    if(ss)
+    {
+        g_object_unref(G_OBJECT(ss));
+    }
+
+    return rv ;
+}
+
 
 /////////////////////////////////////
 //
@@ -1240,7 +1341,6 @@ void update_all_db()
     stat_db() ;
 }
 
-
 gboolean info_find_user(const char* usrname)
 {
     gboolean is_find = FALSE ;
@@ -1255,6 +1355,7 @@ gboolean info_find_user(const char* usrname)
             if(strcmp(organs_item.qymc,usrname) == 0 )
             {
                 is_find = TRUE ;
+                g_strlcpy(mg_htxy_global.info_findKey,usrname,sizeof(mg_htxy_global.info_findKey));
                 g_strlcpy(mg_htxy_global.info_name,organs_item.qymc,sizeof(mg_htxy_global.info_name));
                 if(organs_item.jcType == JC_TYPE_JIANGLI  )
                 {
@@ -1276,6 +1377,7 @@ gboolean info_find_user(const char* usrname)
             if(strcmp(person_item.sfzhm,usrname) == 0 )
             {
                 is_find = TRUE ;
+                g_strlcpy(mg_htxy_global.info_findKey,usrname,sizeof(mg_htxy_global.info_findKey));
                 g_strlcpy(mg_htxy_global.info_name,person_item.xm,sizeof(mg_htxy_global.info_name));
                 if(person_item.jcType == JC_TYPE_JIANGLI  )
                 {
@@ -1347,6 +1449,40 @@ int db_get_person_all(DB_PERSON_ITEM *item_array,int start , int count , gboolea
     return rv_index ;
 }
 
+gboolean db_get_organs_info(const char* qymc, int jcType , DB_ORGANS_ITEM *rv)
+{
+    gboolean is_find = FALSE ;
+
+    FOR_EACH_DB_START(mg_db_organs,DB_ORGANS_ITEM ,organs_item)
+    {
+        if( (strcmp(organs_item.qymc,qymc) == 0 ) && ( organs_item.jcType == jcType ) )
+        {
+            is_find = TRUE ;
+            memcpy(rv,&organs_item,sizeof(DB_ORGANS_ITEM));
+        }
+    }
+    FOR_EACH_DB_END(mg_db_organs,DB_ORGANS_ITEM ,organs_item)
+
+    return is_find ;
+}
+
+gboolean db_get_person_info(const char* sfzhm, int jcType ,DB_PERSON_ITEM *rv)
+{
+    gboolean is_find = FALSE ;
+
+    FOR_EACH_DB_START(mg_db_person,DB_PERSON_ITEM,person_item)
+    {
+        if( (strcmp(person_item.sfzhm,sfzhm) == 0 ) && ( person_item.jcType == jcType ) )
+        {
+            is_find = TRUE ;
+            memcpy(rv,&person_item,sizeof(DB_PERSON_ITEM));
+        }
+    }
+    FOR_EACH_DB_END(mg_db_person,DB_PERSON_ITEM,person_item)
+
+    return is_find ;
+}
+
 void db_init_info(JC_INFO *info)
 {
     memset(info,0,sizeof(JC_INFO));
@@ -1363,6 +1499,10 @@ void db_clear_info(JC_INFO *info)
     if(info->sy)
     {
         g_array_free(info->sy,TRUE);
+    }
+    if(info->recordReason)
+    {
+        hrjson_destroy(info->recordReason);
     }
 }
 

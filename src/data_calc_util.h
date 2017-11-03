@@ -1,6 +1,8 @@
 #ifndef _HRSOFT_DATA_CALC_UTIL_H_2017_10_18_
 #define _HRSOFT_DATA_CALC_UTIL_H_2017_10_18_
 
+#include <hrjson/hrjson.h>
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -67,6 +69,11 @@ typedef struct tag_jc_info {
     GArray *sy ;         ///< sy    每项为一个 char[JC_INFO_SY_ITEM_LEN]
     char measure_name[128] ;
     char jc_basis[128] ;
+    char temp_id[128];
+    char zt_id[128];
+    char jcDate[128];
+    char jcDesc[128];
+    HR_JSON recordReason;
 } JC_INFO ;
 typedef char JC_INFO_REASON_ITEM_TYPE[JC_INFO_REASON_ITEM_LEN];
 typedef char JC_INFO_SY_ITEM_TYPE[JC_INFO_SY_ITEM_LEN];
@@ -85,6 +92,8 @@ void stat_db();
 /// 返回值表示实际读取到的条数
 int db_get_organs_all(DB_ORGANS_ITEM *item_array,int start , int count , gboolean is_shishi);
 int db_get_person_all(DB_PERSON_ITEM *item_array,int start , int count , gboolean is_shishi);
+gboolean db_get_organs_info(const char* qymc, int jcType , DB_ORGANS_ITEM *rv);
+gboolean db_get_person_info(const char* sfzhm, int jcType ,DB_PERSON_ITEM *rv);
 int db_get_organs_jc_info(DB_ORGANS_ITEM*item,JC_INFO *info);
 void db_init_info(JC_INFO *info);
 void db_clear_info(JC_INFO *info);

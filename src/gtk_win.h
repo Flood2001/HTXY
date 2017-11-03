@@ -30,7 +30,8 @@ typedef struct tag_htxy_global {
     int stat_person_shishi ;
 
     // µ±Ç°Info
-    char info_name[1024];
+    char info_findKey[1024];    ///< ²éÕÒµÄ×Ö·û´®
+    char info_name[1024];   ///< ÏÔÊ¾×Ö·û´®
     int info_jiangli ;
     int info_chengjie ;
 

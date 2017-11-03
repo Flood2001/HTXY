@@ -601,6 +601,12 @@ static void slog_bt_organs_shishi(GtkButton *button, gpointer user_data)
     DB_ORGANS_ITEM *item = (DB_ORGANS_ITEM *)user_data ;
     JC_INFO info ;
 
+    if(mg_htxy_global.organId[0] == '\0' )
+    {
+        gtk_show_msg_dlg(141,142);
+        return ;
+    }
+
     db_init_info(&info);
     db_get_organs_jc_info(item,&info);
     widget_show_shishi_organs(item , &info);
@@ -635,7 +641,11 @@ static void slog_bt_organs_shanchu(GtkButton *button, gpointer user_data)
 
 static void slog_bt_person_shishi(GtkButton *button, gpointer user_data) 
 {
-
+    if(mg_htxy_global.organId[0] == '\0' )
+    {
+        gtk_show_msg_dlg(141,142);
+        return ;
+    }
 }
 static void slog_bt_person_zancun(GtkButton *button, gpointer user_data) 
 {

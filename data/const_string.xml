@@ -118,4 +118,6 @@
     <ITEM> <id>164</id> <str>&lt;span foreground='black' font_desc='13'&gt; 惩戒说明： &lt;/span&gt;</str> </ITEM>
     <ITEM> <id>165</id> <str>&lt;span foreground='white' bgcolor='#00C000' &gt; 确定反馈 &lt;/span&gt;</str> </ITEM>
     <ITEM> <id>166</id> <str>&lt;span foreground='black' bgcolor='#D0D0D0' &gt; 取消 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>167</id> <str>&lt;span weight='bold' font_desc='14'&gt; 反馈成功 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>168</id> <str>&lt;span foreground='black' font_desc='13'&gt; 已成功实施！&lt;/span&gt;</str> </ITEM>
 </CONST_STRING_TABLE>

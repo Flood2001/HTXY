@@ -100,6 +100,9 @@ static void Cwin_show_info_get_property(GObject *object,
         GParamSpec *pspec);
 #endif
 
+static void slog_bt_jiangli(GtkButton *button, gpointer user_data) ;
+static void slog_bt_chengjie(GtkButton *button, gpointer user_data) ;
+
 //////////////////////////////////////////////////
 ///
 ///  类基本函数实现
@@ -243,6 +246,7 @@ static void Cwin_show_info_inst_init(Cwin_show_info *window)
     window->prv->m_label_jiangli = gtk_label_new("   ");
     bt = gtk_button_new_with_label("      ");
     gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(window->prv->m_label_jiangli));
+    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_jiangli),window);
     Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(label),
         0,1,3,1, TRUE , TRUE , TRUE ,TRUE);
     Cgtk_grid_table_attach(GTK_GRID_TABLE(table),bt,
@@ -254,6 +258,7 @@ static void Cwin_show_info_inst_init(Cwin_show_info *window)
     window->prv->m_label_chengjie = gtk_label_new("   ");
     bt = gtk_button_new_with_label("      ");
     gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(window->prv->m_label_chengjie));
+    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_chengjie),window);
     Cgtk_grid_table_attach(GTK_GRID_TABLE(table),GTK_WIDGET(label),
         0,2,3,1, TRUE , TRUE , TRUE ,TRUE);
     Cgtk_grid_table_attach(GTK_GRID_TABLE(table),bt,
@@ -344,6 +349,35 @@ void Cwin_show_info_updata_info(Cwin_show_info *window)
 ///  私有函数实现
 ///
 ///////////////////////////////////////////////////
+
+static void slog_bt_jiangli(GtkButton *button, gpointer user_data)
+{
+}
+
+static void slog_bt_chengjie(GtkButton *button, gpointer user_data)
+{
+    DB_ORGANS_ITEM organs ;
+    DB_PERSON_ITEM person ;
+    JC_INFO info ;
+
+    if(mg_htxy_global.organId[0] == '\0' )
+    {
+        gtk_show_msg_dlg(141,142);
+        return ;
+    }
+
+    if(mg_htxy_global.info_chengjie > 0 )
+    {
+        if(db_get_organs_info(mg_htxy_global.info_findKey, JC_TYPE_CHENGJIE, &organs))
+        {
+            db_init_info(&info);
+            db_get_organs_jc_info(&organs,&info);
+            widget_show_shishi_organs(&organs, &info);
+            db_clear_info(&info);
+            return ;
+        }
+    }
+}
 
 #ifdef __cplusplus
 }

@@ -45,6 +45,8 @@ struct _c_win_show_shishi_private {
 
     //
     ST_TIME m_shijian ;
+    DB_ORGANS_ITEM m_item ;
+    JC_INFO m_info ;
 };
 
 #define  WIN_SHOW_SHISHI_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj),WIN_SHOW_SHISHI_TYPE,Cwin_show_shishi_private))
@@ -397,6 +399,14 @@ void Cwin_show_shishi_set_organs_data(Cwin_show_shishi *window ,DB_ORGANS_ITEM *
 {
     char buff[1024] ;
 
+    /// 拷贝数据
+    memcpy(&window->prv->m_item,item,sizeof(DB_ORGANS_ITEM));
+    memcpy(&window->prv->m_info,info,sizeof(JC_INFO));
+    info->reasons = NULL ;
+    info->sy = NULL ;
+    info->recordReason = NULL ;
+
+    /// 更新界面
     gtk_label_set_markup(GTK_LABEL(window->prv->m_label_name), get_const_str(151));
     g_snprintf(buff,sizeof(buff),get_const_str(152),item->qymc);
     gtk_label_set_markup(GTK_LABEL(window->prv->m_entry_name), buff);
@@ -405,7 +415,7 @@ void Cwin_show_shishi_set_organs_data(Cwin_show_shishi *window ,DB_ORGANS_ITEM *
     g_snprintf(buff,sizeof(buff),get_const_str(154),item->xydm);
     gtk_label_set_markup(GTK_LABEL(window->prv->m_entry_haoma), buff);
 
-    g_snprintf(buff,sizeof(buff),get_const_str(156),info->measure_name);
+    g_snprintf(buff,sizeof(buff),get_const_str(156),window->prv->m_info.measure_name);
     gtk_label_set_markup(GTK_LABEL(window->prv->m_entry_cuoshi), buff);
 
     {//事由
@@ -420,10 +430,10 @@ void Cwin_show_shishi_set_organs_data(Cwin_show_shishi *window ,DB_ORGANS_ITEM *
         window->prv->m_entry_shiyou_table = gtk_vbox_new(FALSE,0);
         gtk_box_pack_start(GTK_BOX(window->prv->m_entry_shiyou),
             GTK_WIDGET(window->prv->m_entry_shiyou_table),TRUE,TRUE,0);
-        for(i=0;i<info->reasons->len ;i++)
+        for(i=0;i<window->prv->m_info.reasons->len ;i++)
         {
             g_snprintf(buff,sizeof(buff),get_const_str(160),i+1,
-                &g_array_index(info->reasons,JC_INFO_REASON_ITEM_TYPE,i));
+                &g_array_index(window->prv->m_info.reasons,JC_INFO_REASON_ITEM_TYPE,i));
             label = gtk_label_new(buff);
             gtk_label_set_markup(GTK_LABEL(label),buff);
             gtk_misc_set_alignment(GTK_MISC(label), 0.0f , 0.5f);
@@ -431,7 +441,7 @@ void Cwin_show_shishi_set_organs_data(Cwin_show_shishi *window ,DB_ORGANS_ITEM *
         }
     }
 
-    g_snprintf(buff,sizeof(buff),get_const_str(158),info->jc_basis);
+    g_snprintf(buff,sizeof(buff),get_const_str(158),window->prv->m_info.jc_basis);
     gtk_label_set_markup(GTK_LABEL(window->prv->m_entry_yiju), buff);
 
     //初始化时间
@@ -500,6 +510,25 @@ static void slog_clicked_cancel(GtkButton *button, gpointer user_data)
 
 static void slog_clicked_fankui(GtkButton *button, gpointer user_data)
 {
+    Cwin_show_shishi *window = (Cwin_show_shishi *)user_data ;
+    const char* str ;
+
+    if(mg_htxy_global.organId[0] == '\0' )
+    {
+        gtk_show_msg_dlg(141,142);
+        return ;
+    }
+
+    st_time_to_year_and_time(&window->prv->m_shijian,window->prv->m_info.jcDate);
+    str = gtk_entry_get_text(GTK_ENTRY(window->prv->m_entry_shuoming));
+    if(str)
+    {
+        g_strlcpy(window->prv->m_info.jcDesc,str,sizeof(window->prv->m_info.jcDesc));
+    }
+    if(0== db_shishi_organs(&window->prv->m_info) )
+    {
+        gtk_show_msg_dlg(167,168);
+    }
 }
 
 #ifdef __cplusplus
