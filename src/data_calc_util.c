@@ -1506,6 +1506,85 @@ void db_clear_info(JC_INFO *info)
     }
 }
 
+gboolean update_check_is_new()
+{
+    SoupSession *ss ;
+    SoupMessage *msg;
+    guint status;
+    char url[1024];
+    const char *str ;
+    HR_JSON root = NULL ;
+    HR_JSON body = NULL ;
+    API_ITEM *api_item ;
+    gboolean rv = FALSE ;
+
+    api_item = get_api_by_index(7);
+    g_snprintf(url,sizeof(url),"%s%s",mg_htxy_global.platform_url,api_item->url);
+    ss = soup_session_sync_new();
+    msg = soup_message_new (api_item->type, url);
+    if(msg)
+    {
+        soup_message_headers_append(msg->request_headers,"Content-Type","application/x-www-form-urlencoded");
+        soup_message_headers_append(msg->request_headers,"Accept-Encoding","gzip, deflate");
+    }
+
+    status = soup_session_send_message (ss , msg);
+    if(status == 200 )
+    {
+        root = hrjson_load_string(msg->response_body->data);
+        if(root)
+        {
+            body = hrjson_object_get_key(root,"body");
+            if(body)
+            {
+                HR_JSON version ;
+                version = hrjson_object_get_key(body,"version");
+                if(version)
+                {
+                    str = hrjson_get_string(version);
+                    if(str)
+                    {
+                        if(strcmp(str,mg_htxy_global.this_version)!=0)
+                        {
+                            rv = TRUE ;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if(root) { hrjson_destroy(root); }
+    if(msg)
+    {
+        g_object_unref(G_OBJECT(msg));
+    }
+    if(ss)
+    {
+        g_object_unref(G_OBJECT(ss));
+    }
+
+    return rv ;
+}
+
+gboolean update_download_packet()
+{
+    ShellExecute(NULL, "open", "http://192.168.5.121/last.exe", NULL, NULL, SW_SHOWNORMAL);
+    return TRUE ;
+}
+
+void update_do_update()
+{
+//    char path[1024];
+//
+//    STARTUPINFO si = {sizeof(si)} ; 
+//    PROCESS_INFORMATION pi ;  
+//    g_snprintf(path,sizeof(path),"%s/update/last.exe",mg_htxy_global.exe_dir);
+//    
+//    CreateProcess(NULL,path,NULL,NULL, FALSE,0,NULL,NULL,&si,&pi) ;  
+    gtk_main_quit();
+}
+
 #ifdef __cplusplus
 }
 #endif

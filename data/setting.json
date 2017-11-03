@@ -37,6 +37,14 @@
 				"name":	"谷歌插件",
 				"type":	"get",
 				"url":	"plugin/chrome/plugin.crx"
+			}, {
+				"name":	"查询最新版本号",
+				"type":	"get",
+				"url":	"client/check_last_version"
+			}, {
+				"name":	"最新版本地址",
+				"type":	"get",
+				"url":	"client/last_version.exe"
 			}]
 	},
 	"userinfo":	{

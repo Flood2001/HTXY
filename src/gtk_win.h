@@ -18,6 +18,7 @@ typedef struct tag_htxy_global_api_item {
 } API_ITEM ;
 
 typedef struct tag_htxy_global {
+    char this_version[TYPE_URL_MAX_LEN];    ///< 当前程序版本号
     char exe_dir[TYPE_URL_MAX_LEN];
     //登录信息
     char organId[TYPE_URL_MAX_LEN];

@@ -45,7 +45,7 @@
     <ITEM> <id>38</id> <str>&lt;span foreground='blue' weight='bold' font_desc='15'&gt; 操作 &lt;/span&gt;</str> </ITEM>
         <!-- 数据库列表界面 : 序号、操作对象 文字渲染 -->
     <ITEM> <id>39</id> <str>&lt;span foreground='black' font_desc='15'&gt; %d &lt;/span&gt;</str> </ITEM>
-    <ITEM> <id>40</id> <str>&lt;span foreground='black' font_desc='15'&gt; %s &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>40</id> <str>&lt;span foreground='black' font_desc='STKaiti 15'&gt; %s &lt;/span&gt;</str> </ITEM>
         <!-- 数据库列表界面 : 按钮 -->
     <ITEM> <id>41</id> <str>&lt;span foreground='white' bgcolor='blue' font_desc='13'&gt; 实施 &lt;/span&gt;</str> </ITEM>
     <ITEM> <id>42</id> <str>&lt;span foreground='white' bgcolor='#008000' font_desc='13'&gt; 暂存 &lt;/span&gt;</str> </ITEM>
@@ -120,4 +120,10 @@
     <ITEM> <id>166</id> <str>&lt;span foreground='black' bgcolor='#D0D0D0' &gt; 取消 &lt;/span&gt;</str> </ITEM>
     <ITEM> <id>167</id> <str>&lt;span weight='bold' font_desc='14'&gt; 反馈成功 &lt;/span&gt;</str> </ITEM>
     <ITEM> <id>168</id> <str>&lt;span foreground='black' font_desc='13'&gt; 已成功实施！&lt;/span&gt;</str> </ITEM>
+
+    <!-- 升级界面 -->
+    <ITEM> <id>181</id> <str>&lt;span foreground='white' bgcolor='#00C000' &gt; 检查最新版本并升级 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>182</id> <str>&lt;span weight='bold' font_desc='14'&gt; 升级提示 &lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>183</id> <str>&lt;span foreground='black' font_desc='13'&gt; 当前程序已经是最新版本！&lt;/span&gt;</str> </ITEM>
+    <ITEM> <id>184</id> <str>&lt;span weight='bold' font_desc='14'&gt; 当前版本： &lt;/span&gt;</str> </ITEM>
 </CONST_STRING_TABLE>

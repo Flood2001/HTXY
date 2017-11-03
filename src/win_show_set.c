@@ -125,8 +125,9 @@ static void Cwin_show_set_get_property(GObject *object,
 #endif
 
 static void slog_bt_update_utl(GtkButton *button, gpointer   user_data) ;
-void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data) ;
-void slog_bt_clicked_update_cfg(GtkButton *button, gpointer   user_data) ;
+static void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data) ;
+static void slog_bt_clicked_update(GtkButton *button, gpointer   user_data) ;
+static void slog_bt_clicked_update_cfg(GtkButton *button, gpointer   user_data) ;
 static gboolean slog_main_book_change_page(GtkNotebook *notebook,
           gint         arg1, gpointer     user_data);
 static void slog_bt_login(GtkButton *button, gpointer   user_data) ;
@@ -413,6 +414,7 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
     GtkWidget *main_notebook ;
     GtkWidget *sys_table ;  ///< 系统
     GtkWidget *user_table ; ///< 用户
+    GtkWidget *update_table ; ///< 升级
     GtkWidget *param_table ;    ///< 参数
     GtkWidget *port_table ;    ///< 接口
     GtkWidget *label ;
@@ -458,20 +460,27 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
 
     /// 系统设置
     user_table = GTK_WIDGET(Cgtk_grid_table_new());
+    update_table = GTK_WIDGET(Cgtk_grid_table_new());
     param_table = GTK_WIDGET(Cgtk_grid_table_new());
     gtk_grid_table_set_row_spacings(GTK_GRID_TABLE(sys_table),10);
     gtk_grid_table_set_col_spacings(GTK_GRID_TABLE(sys_table),10);
     gtk_grid_table_set_row_spacings(GTK_GRID_TABLE(user_table),10);
     gtk_grid_table_set_col_spacings(GTK_GRID_TABLE(user_table),10);
+    gtk_grid_table_set_row_spacings(GTK_GRID_TABLE(update_table),10);
+    gtk_grid_table_set_col_spacings(GTK_GRID_TABLE(update_table),10);
     
     frame = gtk_frame_new(NULL);
     gtk_container_add(GTK_CONTAINER(frame),user_table);
     Cgtk_grid_table_attach(GTK_GRID_TABLE(sys_table),GTK_WIDGET(frame),
         0,0,1,1, TRUE, TRUE , TRUE,TRUE);
     frame = gtk_frame_new(NULL);
+    gtk_container_add(GTK_CONTAINER(frame),update_table);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(sys_table),GTK_WIDGET(frame),
+        0,1,1,1, TRUE, TRUE , TRUE,TRUE);
+    frame = gtk_frame_new(NULL);
     gtk_container_add(GTK_CONTAINER(frame),param_table);
     Cgtk_grid_table_attach(GTK_GRID_TABLE(sys_table),GTK_WIDGET(frame),
-        1,0,1,1, TRUE, TRUE , TRUE,TRUE);
+        1,0,1,2, TRUE, TRUE , TRUE,TRUE);
 
     /// 用户
     label = GTK_WIDGET(Cfunc_label_new());
@@ -488,12 +497,23 @@ static void Cwin_show_set_inst_init(Cwin_show_set *window)
         0,2,1,1, TRUE, TRUE , TRUE,TRUE);
     switch_user_view(window, mg_htxy_global.userinfo_status ) ;
 
-    sep = gtk_hseparator_new();
-    label = gtk_label_new("");
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(sep),
-        0,3,1,1, TRUE, TRUE , TRUE,TRUE);
-    Cgtk_grid_table_attach(GTK_GRID_TABLE(user_table),GTK_WIDGET(label),
-        0,4,1,1, TRUE, TRUE , TRUE,TRUE);
+    /// 自动升级
+    label = gtk_label_new(get_const_str(184));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(184));
+    gtk_misc_set_alignment(GTK_MISC(label),0.1f,0.5f);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(update_table),GTK_WIDGET(label),
+        0,0,1,1, TRUE , TRUE , TRUE,TRUE);
+    label = gtk_label_new(mg_htxy_global.this_version);
+    gtk_misc_set_alignment(GTK_MISC(label),1.0f,0.5f);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(update_table),GTK_WIDGET(label),
+        0,1,1,1, TRUE , TRUE , TRUE,TRUE);
+    label = gtk_label_new(get_const_str(181));
+    gtk_label_set_markup(GTK_LABEL(label),get_const_str(181));
+    bt = gtk_button_new_with_label("  ");
+    gtk_button_set_image(GTK_BUTTON(bt),GTK_WIDGET(label));
+    g_signal_connect(G_OBJECT(bt),"clicked",G_CALLBACK(slog_bt_clicked_update),window);
+    Cgtk_grid_table_attach(GTK_GRID_TABLE(update_table),GTK_WIDGET(bt),
+        0,2,1,1, TRUE , FALSE , TRUE,FALSE );
 
     /// 应用参数
     line = 0 ;
@@ -793,6 +813,20 @@ static void slog_bt_clicked_liji(GtkButton *button, gpointer   user_data)
         return ;
     }
     update_all_db() ;
+}
+
+static void slog_bt_clicked_update(GtkButton *button, gpointer   user_data)
+{
+    if(update_check_is_new() == FALSE)
+    {
+        gtk_show_msg_dlg(182,183);
+        return ;
+    }
+
+    if(update_download_packet())
+    {
+        update_do_update();
+    }
 }
 
 static void slog_bt_clicked_update_cfg(GtkButton *button, gpointer   user_data)

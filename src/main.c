@@ -183,6 +183,8 @@ HTXY_GLOBAL mg_htxy_global = //{0};
 static void init_global()
 {
     memset(&mg_htxy_global,0,sizeof(HTXY_GLOBAL));
+    g_snprintf(mg_htxy_global.this_version,sizeof(mg_htxy_global.this_version),
+         "%s %s" , __DATE__ , __TIME__ );
     hrutil_get_exe_dir(mg_htxy_global.exe_dir);
     mg_htxy_global.listenser_watch = 500 ;
     mg_htxy_global.listenser_delay = 30 ;

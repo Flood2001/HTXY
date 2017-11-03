@@ -98,6 +98,11 @@ int db_get_organs_jc_info(DB_ORGANS_ITEM*item,JC_INFO *info);
 void db_init_info(JC_INFO *info);
 void db_clear_info(JC_INFO *info);
 
+/// 远程升级
+gboolean update_check_is_new(); ///< 检测是否有新版本，有返回TRUE
+gboolean update_download_packet(); ///< 下载升级包到 ./update/last_update.exe
+void update_do_update();        ///< 关闭程序，并执行./update/last_update.exe
+
 #ifdef __cplusplus
 }
 #endif

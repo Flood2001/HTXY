@@ -357,7 +357,6 @@ static void slog_bt_jiangli(GtkButton *button, gpointer user_data)
 static void slog_bt_chengjie(GtkButton *button, gpointer user_data)
 {
     DB_ORGANS_ITEM organs ;
-    DB_PERSON_ITEM person ;
     JC_INFO info ;
 
     if(mg_htxy_global.organId[0] == '\0' )
