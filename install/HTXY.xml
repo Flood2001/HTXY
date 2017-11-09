@@ -12,7 +12,7 @@
             <name>主程序</name>
             <description>主程序</description>
             <canBeEdited>0</canBeEdited>
-            <detailedDescription>HTXY的主程序。可作为简易运维主站端，对二次运维装置进行管理，包含离线报文文件分析功能。</detailedDescription>
+            <detailedDescription>海豚信用微门户主程序</detailedDescription>
             <selected>1</selected>
             <show>1</show>
             <folderList>
@@ -56,7 +56,7 @@
                     <platforms>windows</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>${Rpath}/HTXY/trunk/src/UsbChange.ico</origin>
+                            <origin>${Rpath}/HTXY/trunk/src/HTXY.ico</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>${Rpath}/HTXY/trunk/bin/HTXY.exe</origin>
@@ -155,7 +155,7 @@
             <name>桌面快捷方式</name>
             <description>添加桌面快捷方式</description>
             <canBeEdited>1</canBeEdited>
-            <detailedDescription>在桌面上创建HTXY的快捷方式，如不安装此项，可在安装目录下运行nm3000app来执行程序。linux环境下运行shellpro。</detailedDescription>
+            <detailedDescription>在桌面上创建海豚信用微门户的快捷方式，如不安装此项，可在安装目录下运行HTXY来执行程序。</detailedDescription>
             <selected>1</selected>
             <show>1</show>
             <desktopShortcutList>
@@ -163,14 +163,14 @@
                     <comment></comment>
                     <exec>${installdir}/HTXY</exec>
                     <icon>${installdir}/image/HTXY.png</icon>
-                    <name>HTXY</name>
+                    <name>海豚信用微门户</name>
                     <path>${installdir}/bin</path>
                     <platforms>all</platforms>
                     <runAsAdmin>0</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/HTXY.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${installdir}/UsbChange.ico</windowsIcon>
+                    <windowsIcon>${installdir}/HTXY.ico</windowsIcon>
                     <windowsPath></windowsPath>
                 </shortcut>
             </desktopShortcutList>
@@ -179,18 +179,18 @@
             <name>开始菜单</name>
             <description>开始菜单</description>
             <canBeEdited>1</canBeEdited>
-            <detailedDescription>在开始菜单创建HTXY的程序组和卸载菜单，如不安装此项，可在安装目录下运行uninstall进行卸载。</detailedDescription>
+            <detailedDescription>在开始菜单创建海豚信用微门户的程序组和卸载菜单，如不安装此项，可在安装目录下运行uninstall进行卸载。</detailedDescription>
             <selected>1</selected>
             <show>0</show>
             <startMenuShortcutList>
                 <startMenuShortcut>
                     <comment></comment>
-                    <name>HTXY</name>
+                    <name>海豚信用微门户</name>
                     <runAsAdmin>0</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/HTXY.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${installdir}/UsbChange.ico</windowsIcon>
+                    <windowsIcon>${installdir}/HTXY.ico</windowsIcon>
                     <windowsPath></windowsPath>
                 </startMenuShortcut>
             </startMenuShortcutList>
@@ -211,16 +211,16 @@
             <allowEmptyValue>1</allowEmptyValue>
             <width>30</width>
         </stringParameter>
-        <stringParameter name="VendorName" value="HrSoft" ask="0">
+        <stringParameter name="VendorName" value="海豚信用" ask="0">
             <description>公司名称</description>
         </stringParameter>
-        <stringParameter name="ProductDesc" value="二次运维监管系统" ask="0">
+        <stringParameter name="ProductDesc" value="海豚信用微门户" ask="0">
             <description>产品全名</description>
         </stringParameter>
         <stringParameter name="ProductNameShort" value="HTXY" ask="0">
             <description>产品编号名</description>
         </stringParameter>
-        <stringParameter name="ProductNameFull" value="HTXY" ask="0">
+        <stringParameter name="ProductNameFull" value="海豚信用微门户" ask="0">
             <description>产品编号名</description>
         </stringParameter>
         <stringParameter name="VersionNumber" value="1.0.2" ask="0">

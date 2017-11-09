@@ -1569,7 +1569,12 @@ gboolean update_check_is_new()
 
 gboolean update_download_packet()
 {
-    ShellExecute(NULL, "open", "http://192.168.5.121/last.exe", NULL, NULL, SW_SHOWNORMAL);
+    char url[1024];
+    API_ITEM *api_item ;
+
+    api_item = get_api_by_index(8);
+    g_snprintf(url,sizeof(url),"%s%s",mg_htxy_global.platform_url,api_item->url);
+    ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
     return TRUE ;
 }
 
